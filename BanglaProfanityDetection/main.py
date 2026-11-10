@@ -171,8 +171,12 @@ def step_llm(config):
         max_retries=llm_cfg.get("max_retries", 3),
         provider=provider,
         reasoning_effort=llm_cfg.get("reasoning_effort"),
+        cache_path=os.path.join(config["paths"]["results"], "llm", "predictions_cache.json"),
     )
-    inference_time = time.time() - start_time
+    print(f"Finished in {time.time() - start_time:.1f}s "
+          f"({output['newly_classified']} comments sent to the API)")
+    # Excludes cached comments, so the reported speed stays honest on a resumed run
+    inference_time = output["inference_time"]
 
     if not output["valid_predictions"]:
         print("LLM baseline produced no usable predictions; nothing saved.")

@@ -1,9 +1,36 @@
+import hashlib
 import os
 import re
 import time
 import json
 
 from .model import LABEL_MAP
+
+
+def _text_key(text):
+    return hashlib.sha1(text.encode("utf-8")).hexdigest()
+
+
+def _load_cache(cache_path, model_name):
+    if not cache_path or not os.path.exists(cache_path):
+        return {}
+    with open(cache_path, encoding="utf-8") as f:
+        data = json.load(f)
+    if data.get("model") != model_name:
+        # Labels from a different model must not be mixed into this run
+        print(f"Ignoring cache from model {data.get('model')!r} (now using {model_name!r})")
+        return {}
+    return data.get("labels", {})
+
+
+def _save_cache(cache_path, model_name, cache):
+    if not cache_path:
+        return
+    os.makedirs(os.path.dirname(cache_path) or ".", exist_ok=True)
+    tmp_path = cache_path + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump({"model": model_name, "labels": cache}, f)
+    os.replace(tmp_path, cache_path)  # never leave a half-written cache behind
 
 
 def _parse_groq_response(response_text, num_comments):
@@ -41,7 +68,8 @@ def classify_batch_groq(texts, client, model="llama-3.3-70b-versatile", reasonin
         model=model,
         messages=[{"role": "user", "content": prompt}],
         temperature=0,
-        max_tokens=2048,
+        # A 25-line label list needs ~200 tokens; the free tier caps output at 1,000 tokens/minute
+        max_tokens=512,
         **extra,
     )
     return _parse_groq_response(response.choices[0].message.content, len(texts))
@@ -70,13 +98,29 @@ def run_llm_baseline(
     max_retries=3,
     provider="groq",
     reasoning_effort=None,
+    cache_path=None,
 ):
-    all_preds = [None] * len(texts)
+    """Classify texts in batches.
+
+    With cache_path, every finished batch is saved straight away and reused on the
+    next call, so a re-run (after a disconnect or the daily token limit) only sends
+    the comments that have no label yet.
+    """
+    cache = _load_cache(cache_path, model_name)
+    all_preds = [cache.get(_text_key(t)) for t in texts]
+    if cache_path:
+        done = sum(p is not None for p in all_preds)
+        print(f"Cache: {done}/{len(texts)} comments already classified, "
+              f"{len(texts) - done} to go")
     failed_indices = []
+    newly_classified = 0
+    start_time = time.time()
 
     for i in range(0, len(texts), batch_size):
         batch_texts = texts[i : i + batch_size]
         batch_idx = list(range(i, min(i + batch_size, len(texts))))
+        if all(all_preds[j] is not None for j in batch_idx):
+            continue
 
         success = False
         for attempt in range(max_retries):
@@ -91,6 +135,9 @@ def run_llm_baseline(
                 if batch_labels is not None:
                     for idx, label in zip(batch_idx, batch_labels):
                         all_preds[idx] = label
+                        cache[_text_key(texts[idx])] = label
+                    _save_cache(cache_path, model_name, cache)
+                    newly_classified += len(batch_idx)
                     success = True
                     break
             except Exception as e:
@@ -108,7 +155,16 @@ def run_llm_baseline(
     valid_preds = [all_preds[i] for i in valid_idx]
     valid_labels = [labels[i] for i in valid_idx]
 
+    # Cached comments cost no time, so the speed is measured on this call's comments only and
+    # scaled to all of them; otherwise a resumed run would report an inflated speed
+    elapsed = time.time() - start_time
+    inference_time = (
+        elapsed / newly_classified * len(valid_preds) if newly_classified else None
+    )
+
     return {
+        "inference_time": inference_time,
+        "newly_classified": newly_classified,
         "predictions": all_preds,
         "valid_predictions": valid_preds,
         "valid_labels": valid_labels,

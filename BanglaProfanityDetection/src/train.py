@@ -37,6 +37,19 @@ def _warmup_kwargs(ratio):
     return {"warmup_steps": ratio}
 
 
+def _has_saved_model(model_dir):
+    weights = ("model.safetensors", "pytorch_model.bin")
+    return os.path.exists(os.path.join(model_dir, "config.json")) and any(
+        os.path.exists(os.path.join(model_dir, w)) for w in weights
+    )
+
+
+def _sync_to_disk():
+    # Ask the OS to write out buffered files; on Colab this nudges Google Drive to upload sooner
+    if hasattr(os, "sync"):
+        os.sync()
+
+
 def split_validation(texts, labels, val_size=0.1, seed=42):
     """Hold out a stratified validation split from the training data.
 
@@ -68,11 +81,15 @@ def train_model(
     best_model_dir = os.path.join(run_output_dir, "best_model")
     metrics_path = os.path.join(run_output_dir, "metrics.json")
 
-    # Skip runs that already finished, so an interrupted session (e.g. Colab) can resume
+    # Skip runs that already finished, so an interrupted session (e.g. Colab) can resume.
+    # A run counts as finished only if its saved model is also there when one is expected;
+    # otherwise (e.g. lost in a Drive sync) it is trained again.
     if resume and os.path.exists(metrics_path):
-        print(f"Found finished run at {run_output_dir}, skipping training")
-        with open(metrics_path) as f:
-            return json.load(f), best_model_dir
+        if not keep_model or _has_saved_model(best_model_dir):
+            print(f"Found finished run at {run_output_dir}, skipping training")
+            with open(metrics_path) as f:
+                return json.load(f), best_model_dir
+        print(f"{run_output_dir} has metrics but no saved model; training it again")
 
     tokenizer = get_tokenizer(model_name)
     model = load_model(model_name, config.get("num_labels", 2))
@@ -131,8 +148,10 @@ def train_model(
     if keep_model:
         trainer.save_model(best_model_dir)
         tokenizer.save_pretrained(best_model_dir)
+    # metrics.json is written last: it marks the run as finished for the resume check above
     with open(metrics_path, "w") as f:
         json.dump(metrics, f, indent=2)
+    _sync_to_disk()
 
     return metrics, best_model_dir
 
