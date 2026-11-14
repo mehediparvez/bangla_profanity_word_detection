@@ -1,0 +1,28 @@
+\chapter{Literature Review}
+\justifying
+
+This chapter reviews four areas that this thesis builds on: automatic detection of toxic and hateful text in general, work specific to Bangla, pretrained transformer language models, and the use of large language models for classification.
+
+\section{Toxic and Hate Speech Detection}
+
+Automatic detection of abusive language has been studied extensively for English. Surveys by Schmidt and Wiegand \cite{schmidt2017survey} and Fortuna and Nunes \cite{fortuna2018survey} describe how early systems relied on hand-crafted features such as word lists, n-grams and sentiment scores, fed into classical classifiers. Davidson et al. \cite{davidson2017automated} showed that separating hate speech from merely offensive language is difficult, and that systems relying on the presence of particular words produce many errors: offensive words appear in harmless contexts, and hateful messages can avoid explicit slurs. These findings motivate approaches that model the meaning of a whole sentence rather than individual words.
+
+\section{Toxic and Hate Speech Detection in Bangla}
+
+Bangla has received growing attention in recent years. Ishmam and Sharmin \cite{ishmam2019hateful} collected comments from public Facebook pages and classified hateful speech using machine learning and recurrent neural networks. Romim et al. \cite{romim2021hate} released a dataset of around 30,000 Bangla comments annotated for hate speech, with baseline results from classical and deep learning models. The same group later published BD-SHS \cite{romim2022bdshs}, a larger benchmark that also records the social context and target of hate speech. Karim et al. \cite{karim2021deephateexplainer} applied transformer models, including multilingual BERT and XLM-RoBERTa, to Bangla hate speech and added explanations of the model decisions.
+
+Belal et al. \cite{belal2023toxic} introduced the Multi-labeled Bengali Toxic Comments dataset used in this thesis. Each comment is annotated with six toxicity types: vulgar, hate, religious, threat, troll and insult. They proposed a two-stage approach that first decides whether a comment is toxic and then identifies the toxicity types, and reported a binary accuracy of 89.42\% for the first stage.
+
+\section{Pretrained Transformer Language Models}
+
+The transformer architecture \cite{vaswani2017attention} and BERT \cite{devlin2019bert} established the now-standard approach of pretraining a language model on large unlabelled corpora and then fine-tuning it on a specific task. RoBERTa \cite{liu2019roberta} improved the pretraining recipe. XLM-RoBERTa \cite{conneau2020xlmr} applied this recipe to 2.5 TB of filtered web text in 100 languages, including Bangla, and showed strong cross-lingual performance, notably for low-resource languages.
+
+Two Bangla-specific models share the name BanglaBERT. Sarker \cite{sarker2020banglabert} released a BERT-base model (\texttt{sagorsarker/bangla-bert-base}) pretrained on Bangla Wikipedia and the Bangla portion of OSCAR, which is the model used in this thesis. Bhattacharjee et al. \cite{bhattacharjee2022banglabert} later released a separate model (\texttt{csebuetnlp/banglabert}) pretrained with the ELECTRA objective on a larger Bangla corpus, together with a benchmark of Bangla language understanding tasks.
+
+\section{Large Language Models for Classification}
+
+Large language models can carry out many tasks from a natural-language instruction alone, without task-specific training, a setting known as zero-shot learning \cite{brown2020gpt3}. This is attractive for low-resource languages, where labelled data is scarce. However, LLMs are trained mostly on English text, are expensive to run, and their behaviour on sensitive tasks such as content moderation depends heavily on their safety tuning. Open-weight models such as the Qwen3 family \cite{yang2025qwen3} are multilingual and can be accessed through low-latency inference services.
+
+\section{Research Gap}
+
+Previous Bangla studies usually evaluate one family of methods, report a single training run, and rarely compare fine-tuned models with zero-shot LLMs on the same test data. This thesis addresses that gap by comparing a lexicon filter, a Bangla-specific transformer, a multilingual transformer and a zero-shot LLM under one controlled protocol, with repeated runs, leakage-free model selection and an analysis of speed as well as accuracy.

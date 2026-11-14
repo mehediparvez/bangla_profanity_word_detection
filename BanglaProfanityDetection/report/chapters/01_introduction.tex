@@ -1,0 +1,53 @@
+\chapter{Introduction}
+\justifying
+
+\section{Background}
+
+Bangla (Bengali) is spoken by more than 250 million people and is one of the most widely spoken languages in the world. A rapidly growing share of Bangla speakers use social media platforms such as Facebook and YouTube, where they post and comment in their own language. Alongside constructive discussion, these platforms host a large volume of toxic content: insults, vulgar language, threats, trolling, and hate directed at people because of their religion or identity.
+
+Toxic comments harm the people they target, discourage participation in online discussion and can contribute to offline conflict. Platforms therefore rely on automatic moderation to flag harmful content, because the volume of comments is far too large for human moderators alone. Such systems have been developed mainly for English and a few other high-resource languages \cite{schmidt2017survey,fortuna2018survey}. For Bangla, labelled datasets and well-tested tools are much scarcer, which makes it a \emph{low-resource} language for this task.
+
+Recent progress in natural language processing (NLP) offers two broad routes to closing this gap. The first is \emph{fine-tuning} a pretrained transformer model \cite{vaswani2017attention,devlin2019bert} on a labelled dataset, either a Bangla-specific model such as BanglaBERT \cite{sarker2020banglabert} or a multilingual model such as XLM-RoBERTa \cite{conneau2020xlmr}. The second is to use a \emph{large language model} (LLM) through prompting alone, without any task-specific training \cite{brown2020gpt3}. Simpler approaches, such as filtering comments against a list of offensive words, are still widely used in practice because they are easy to deploy.
+
+\section{Problem Statement}
+
+It is not yet clear which of these approaches works best for detecting toxic Bangla comments, or what trade-offs each one involves. Fine-tuning requires labelled data and GPU training, whereas zero-shot LLMs need no training data but are slower and depend on an external service. Language-specific models are trained on Bangla text alone, whereas multilingual models are trained on far more data spread across many languages. A word-list filter needs neither data nor training, but it may not cope with Bangla's rich vocabulary and spelling variation. A fair, like-for-like comparison of these approaches on the same Bangla data is needed to guide practitioners.
+
+\section{Motivation}
+
+This work is motivated by three observations. First, Bangla users deserve the same protection from online abuse as speakers of high-resource languages. Second, the rise of general-purpose LLMs raises a practical question: is it still worth collecting labelled data and fine-tuning models, or can a prompted LLM do the job? Third, many studies report results from a single training run, which makes it hard to tell whether a difference between two models is real or caused by random variation. A careful evaluation with repeated runs and a strict separation between validation and test data gives more trustworthy conclusions.
+
+\section{Research Questions}
+
+This thesis addresses the following research questions:
+
+\begin{enumerate}[label=\textbf{RQ\arabic*.}, leftmargin=*]
+  \item How accurately can fine-tuned transformer models detect toxic Bangla comments?
+  \item Does a Bangla-specific pretrained model (BanglaBERT) outperform a multilingual one (XLM-RoBERTa)?
+  \item How does a zero-shot large language model compare with fine-tuned models in accuracy and speed?
+  \item Is a word-list (lexicon) filter an adequate baseline for Bangla?
+  \item How does the performance of fine-tuned models change with the amount of training data?
+\end{enumerate}
+
+\section{Contributions}
+
+The main contributions of this thesis are:
+
+\begin{itemize}
+  \item A controlled comparison of four detection approaches, namely a lexicon filter, BanglaBERT, XLM-RoBERTa and a zero-shot LLM, all scored on the same held-out test set of 3,183 Bangla comments.
+  \item A leakage-free evaluation protocol, with a separate validation split for model selection, three training runs per model with different random seeds, and a learning-curve analysis.
+  \item An analysis of the trade-offs between accuracy, error types and inference speed, with practical recommendations for Bangla content moderation.
+  \item An open, reproducible implementation that runs on free cloud GPUs (Google Colab), together with an interactive web demo.
+\end{itemize}
+
+\section{Thesis Organization}
+
+The rest of this thesis is organised as follows.
+
+\textbf{Chapter 2: Literature Review} surveys work on toxic and hate speech detection, Bangla datasets and models, pretrained transformers, and LLM-based classification.
+
+\textbf{Chapter 3: Methodology} describes the dataset, preprocessing, the four approaches, the training setup and the evaluation protocol.
+
+\textbf{Chapter 4: Results and Discussion} presents and analyses the experimental results.
+
+\textbf{Chapter 5: Conclusion and Future Work} summarises the findings, limitations and directions for future research.

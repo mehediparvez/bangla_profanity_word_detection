@@ -1,0 +1,30 @@
+\chapter{Conclusion and Future Work}
+\justifying
+
+\section{Conclusion}
+
+This thesis compared four approaches to detecting toxic Bangla comments under one controlled protocol: an English lexicon filter, the Bangla-specific BanglaBERT, the multilingual XLM-RoBERTa, and a zero-shot large language model. All were evaluated on the same 3,183 held-out comments from the Multi-labeled Bengali Toxic Comments dataset. Model selection used a separate validation split, and the fine-tuned models were each trained three times.
+
+Fine-tuned transformers are by far the most effective approach. XLM-RoBERTa achieves the best weighted F1-score, 0.943, and BanglaBERT reaches 0.928. Both miss only about 5\% of toxic comments, XLM-RoBERTa raises a third fewer false alarms, and both classify around 180 comments per second on a free GPU. Even with a quarter of the training data, both models exceed an F1-score of 0.90. The zero-shot LLM reaches an F1-score of 0.768. It rarely raises false alarms, but it misses many toxic comments and is much slower and dependent on an external service. The English lexicon filter is ineffective for Bangla. These results suggest that, for Bangla content moderation, collecting a moderate amount of labelled data and fine-tuning a pretrained multilingual transformer is currently the most accurate and cost-effective strategy.
+
+\section{Limitations}
+
+\begin{itemize}
+  \item \textbf{Single dataset.} All experiments use one dataset from one collection effort, so the models may not generalise equally well to other platforms, topics or time periods.
+  \item \textbf{Binary labels.} The six toxicity types were merged into one label. The thesis does not evaluate how well each type (for example threats or religious hate) is detected.
+  \item \textbf{Bangla script only.} The dataset contains comments in Bangla script. Romanised Bangla (``Banglish'') and code-mixed Bangla--English, which are common on social media, were not studied.
+  \item \textbf{Incomplete LLM coverage.} Because of free-tier API limits, the LLM was scored on 3,033 of 3,183 test comments, and only one LLM and one prompt were tested.
+  \item \textbf{No hyperparameter search.} Standard fine-tuning settings were used for both models. Tuning them could change the margins between the models.
+  \item \textbf{Few runs.} Three runs per model give an estimate of variability but are too few for formal significance testing.
+\end{itemize}
+
+\section{Future Work}
+
+\begin{itemize}
+  \item \textbf{Stronger Bangla models.} Evaluate \texttt{csebuetnlp/banglabert} \cite{bhattacharjee2022banglabert} and larger multilingual models such as XLM-RoBERTa-large.
+  \item \textbf{Multi-label classification.} Predict the six toxicity types directly, which supports more nuanced moderation policies.
+  \item \textbf{More datasets.} Evaluate across datasets, for example by training on this dataset and testing on BD-SHS \cite{romim2022bdshs}, to measure generalisation.
+  \item \textbf{Romanised and code-mixed text.} Collect or adapt data in Banglish and mixed Bangla--English.
+  \item \textbf{Better LLM use.} Test few-shot prompting with labelled examples, prompts that include the annotation guidelines, and other LLMs, and use LLMs to generate additional training data.
+  \item \textbf{Explainability.} Highlight the words that drive each prediction, to help moderators understand and trust the system.
+\end{itemize}

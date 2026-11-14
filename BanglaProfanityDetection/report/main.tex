@@ -1,0 +1,209 @@
+% Thesis report: Bangla toxic comment detection.
+% Compiles with pdfLaTeX (fastest, Overleaf default) or XeLaTeX. References use BibTeX.
+% Charts are drawn by make_figures.py into figures/.
+
+\documentclass[12pt]{report}
+
+% ---------------------------------------------------------------------------
+% Details for the title page and certificate. Check each one.
+% ---------------------------------------------------------------------------
+\newcommand{\thesistitle}{Detecting Toxic Comments in Bangla Social Media: A Comparative Study of Fine-tuned Transformers, Zero-shot Large Language Models and Lexicon-based Filtering}
+\newcommand{\studentA}{MONTASIR MAMUN SAGOR}
+\newcommand{\studentAid}{12008025}
+\newcommand{\degree}{MASTER OF SCIENCE}
+\newcommand{\coursename}{In Partial Fulfillment of the Requirements for the Degree of}
+\newcommand{\department}{DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING}
+\newcommand{\university}{COMILLA UNIVERSITY, CUMILLA-3506}
+\newcommand{\supervisor}{Khairun Nahar}
+\newcommand{\supervisorrank}{Assistant Professor}
+\newcommand{\chairman}{Khairun Nahar}
+\newcommand{\chairmanrank}{Assistant Professor}
+\newcommand{\submissiondate}{November 2026}
+
+% ---------------------------------------------------------------------------
+% Fonts. pdfLaTeX (the Overleaf default) is the fastest to compile. TeX Gyre Termes is a
+% Times New Roman clone.
+% ---------------------------------------------------------------------------
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{tgtermes}
+\else
+  \usepackage{fontspec}
+  \setmainfont{TeX Gyre Termes}
+\fi
+
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{float}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{textcomp}
+\usepackage[table]{xcolor}
+\usepackage{array,multirow,booktabs,tabularx}
+\usepackage{url}
+\usepackage{ragged2e}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit}
+\usepackage[hidelinks]{hyperref}
+
+% natbib + BibTeX compiles much faster than biblatex + Biber on the free Overleaf plan
+\usepackage[numbers,sort&compress]{natbib}
+\renewcommand{\bibname}{References}
+
+\usepackage[parfill]{parskip}
+\usepackage{geometry}
+\usepackage{sectsty}
+\chapterfont{\centering}
+\geometry{
+  paper=a4paper,
+  top=1in,
+  bottom=1in,
+  left=1.2in,
+  right=0.8in,
+  headheight=0.75cm,
+  footskip=1.5cm,
+  headsep=0.75cm,
+}
+\linespread{1.5}
+
+\begin{document}
+
+% ===========================================================================
+% Title page
+% ===========================================================================
+\begin{titlepage}
+  \centering
+  \includegraphics[height=4cm,width=4cm]{unilogo.png}\par
+  \vspace{0.3cm}
+  {\huge\bfseries Comilla University\par}
+  \vspace{0.5cm}
+  {\scshape\Large\bfseries \thesistitle\par}
+  \vspace{0.45cm}
+  {\scshape\Large\bfseries A THESIS REPORT\par}
+  {\scshape\Large\bfseries \textit{Submitted By}\par}
+  {\Large\textbf{\studentA}}\par
+  {\Large{ID: \studentAid}}\par
+  \vspace{0.35cm}
+  {\large\textbf{\textit{\coursename}}}\par
+  {\Large\textbf{\degree}}\par
+  \vspace{0.1cm}
+  {\large\textbf{IN}}\par
+  {\large\textbf{\department}\par}
+  \vspace{0.45cm}
+  {\Large\textbf{\university}}\par
+  \vspace{0.35cm}
+  {\Large\bfseries \submissiondate}\par
+\end{titlepage}
+
+% ===========================================================================
+% Certificate
+% ===========================================================================
+\newpage
+\pagenumbering{gobble}
+\begin{center}
+  \large\textbf{BONAFIDE CERTIFICATE}
+\end{center}
+
+This is to certify that the thesis entitled \textbf{``\thesistitle''} is submitted by \studentA{}, who carried out the work under my supervision. This is the bonafide work.
+
+\vspace{2cm}
+
+\noindent
+\begin{tabular}{l@{\hspace{3cm}}l}
+Signature & Signature \\[1.5cm]
+\makebox[5cm]{\dotfill} & \makebox[5cm]{\dotfill} \\
+\chairman & \supervisor \\
+\textbf{Chairman of the Exam Committee} & \textbf{Supervisor} \\
+\chairmanrank & \supervisorrank \\
+Department of CSE & Department of CSE \\
+Comilla University, Cumilla. & Comilla University, Cumilla. \\
+\end{tabular}
+
+\newpage
+\pagenumbering{Roman}
+
+% ===========================================================================
+% Abstract
+% ===========================================================================
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\justifying
+
+Toxic and abusive comments are widespread on Bangla social media, yet most moderation tools are built for English. This thesis compares four ways of detecting toxic Bangla comments automatically: a word-list (lexicon) filter, two fine-tuned transformer models (the Bangla-specific BanglaBERT and the multilingual XLM-RoBERTa), and a large language model (LLM) used zero-shot, without any task-specific training.
+
+The study uses the Multi-labeled Bengali Toxic Comments dataset. Its six toxicity labels (vulgar, hate, religious, threat, troll and insult) are merged into one binary label, giving 15,913 comments after cleaning, of which 53.2\% are toxic. All methods are scored on the same stratified test set of 3,183 comments. Model selection uses a separate validation split, so the test set is used only for final scores. Each fine-tuned model is trained three times with different random seeds, and a learning curve measures how much labelled data the models need.
+
+XLM-RoBERTa achieves the best result, with a weighted F1-score of 0.943 $\pm$ 0.001, ahead of BanglaBERT at 0.928 $\pm$ 0.003, and it stays ahead at every amount of training data. The zero-shot LLM (Qwen, accessed through the Groq API) reaches an F1-score of 0.768. It is highly precise when it flags a comment as toxic (precision 0.97) but misses 41\% of toxic comments, and it runs about 70 times slower than the fine-tuned models. The English word-list filter fails almost completely (F1 0.299) because it does not recognise Bangla words.
+
+The results show that fine-tuning a pretrained transformer on a modest amount of labelled Bangla data clearly outperforms both lexicon filtering and zero-shot prompting of a general-purpose LLM, while also being far cheaper to run. A multilingual model pretrained on a very large corpus can outperform a smaller language-specific model. The thesis also provides a reproducible pipeline that runs on free cloud GPUs, and a web demo.
+
+\textbf{Keywords:} Bangla, toxic comment detection, hate speech, BanglaBERT, XLM-RoBERTa, large language models, zero-shot classification, low-resource NLP.
+
+% ===========================================================================
+% Acknowledgement
+% ===========================================================================
+\chapter*{Acknowledgement}
+\addcontentsline{toc}{chapter}{Acknowledgement}
+
+First and foremost, I thank the Almighty Allah for His blessings, which gave me the health and determination to complete this thesis.
+
+I express my sincere gratitude to my supervisor, \textbf{\supervisor}, for her guidance, careful review and constant encouragement throughout this work on \textbf{``\thesistitle''}.
+
+I thank the authors of the Multi-labeled Bengali Toxic Comments dataset for making their data publicly available, and the developers of the open-source tools this work builds on, including Hugging Face Transformers, PyTorch and scikit-learn. I also acknowledge Google Colab for free GPU access and Groq for free API access to the language model used in this study.
+
+% If your university requires it, state the use of AI tools here, for example:
+% "AI-based tools were used to assist with parts of the software implementation; all
+%  experimental design, analysis and conclusions are my own."
+
+Finally, I thank my family and friends for their support and patience throughout this journey.
+
+% ===========================================================================
+% Front matter lists
+% ===========================================================================
+\newpage
+\renewcommand*\contentsname{Table of Contents}
+\tableofcontents
+\listoffigures
+\listoftables
+
+\chapter*{List of Abbreviations}
+\addcontentsline{toc}{chapter}{List of Abbreviations}
+\begin{tabular}{@{}ll@{}}
+API     & Application Programming Interface \\
+BERT    & Bidirectional Encoder Representations from Transformers \\
+F1      & Harmonic mean of precision and recall \\
+FN / FP & False Negative / False Positive \\
+GPU     & Graphics Processing Unit \\
+LLM     & Large Language Model \\
+MLM     & Masked Language Modelling \\
+NLP     & Natural Language Processing \\
+TN / TP & True Negative / True Positive \\
+XLM-R   & XLM-RoBERTa (Cross-lingual Language Model, RoBERTa architecture) \\
+\end{tabular}
+
+\clearpage
+\pagenumbering{arabic}
+
+% ===========================================================================
+% Chapters. If a full compile times out on the free Overleaf plan, comment out
+% some \input lines, compile, then uncomment them and compile again.
+% ===========================================================================
+\input{chapters/01_introduction}
+\input{chapters/02_literature_review}
+\input{chapters/03_methodology}
+\input{chapters/04_results}
+\input{chapters/05_conclusion}
+
+% ===========================================================================
+% References (BibTeX)
+% ===========================================================================
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{References}
+\bibliographystyle{unsrtnat}
+\bibliography{ref}
+
+\end{document}
