@@ -142,14 +142,42 @@ make test
 cd .. && python -m pytest BanglaProfanityDetection/tests/ -v
 ```
 
+## Trained Models (Google Drive)
+
+Model weights are too large for git (`saved_models/`, `*.pt`, `*.bin` are git-ignored), so they are
+shared on Google Drive:
+
+**https://drive.google.com/drive/folders/1bquDozhluBq29Fot9iQh-n-9ef4brQyd** (`Set_A`, view-only link)
+
+Inside `Set_A/BanglaProfanityDetection/results/`:
+
+| Folder | Contents |
+|--------|----------|
+| `bangla-bert-base/run_1/best_model` | fine-tuned BanglaBERT (best run) |
+| `xlm-roberta-base/run_1/best_model` | fine-tuned XLM-R (best run) |
+| `bangla-bert-base/`, `xlm-roberta-base/` (`run_*`, `frac_*`) | per-run metrics and learning-curve runs |
+| `banglabert/`, `xlmr/`, `better_profanity/`, `llm/` | `evaluation.json` / `summary.json` used for the plots |
+
+To use them:
+
+1. In Drive, open the link, right-click the `best_model` folder > **Download** (or **Add shortcut to
+   Drive** / **Make a copy** if you will run on Colab).
+2. Put the folder anywhere and point the demo at it:
+   ```bash
+   MODEL_DIR=/path/to/best_model python main.py --step demo
+   ```
+3. Clone the code: `git clone https://github.com/mehediparvez/bangla_profanity_word_detection.git`
+
+Note: `saved_models/` on Drive is empty. The models live under `results/`.
+
 ## Training on Google Colab
 
 Every notebook starts with a setup cell that only runs on Colab. It mounts Google Drive,
-clones this branch into `MyDrive/Set_A`, `cd`s into `notebooks/` and installs dependencies.
+clones the `main` branch into `MyDrive/Set_A`, `cd`s into `notebooks/` and installs dependencies.
 Results and models are written to Drive, so they survive disconnects.
 
-1. Push this branch to GitHub (the setup cell clones `bangal_profanity`).
-2. Open a notebook in Colab: File > Open notebook > GitHub, then search `mehediparvez/Set_A` and pick the `bangal_profanity` branch.
+1. Code lives at https://github.com/mehediparvez/bangla_profanity_word_detection (branch `main`).
+2. Open a notebook in Colab: File > Open notebook > GitHub, then search `mehediparvez/bangla_profanity_word_detection` and pick the `main` branch.
 3. Runtime > Change runtime type > **T4 GPU**.
 4. Run the setup cell once. Then upload `train.csv` into
    `MyDrive/Set_A/BanglaProfanityDetection/data/` (Drive web UI or the Colab file browser).
