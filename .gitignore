@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ML / Models
+saved_models/
+*.pt
+*.bin
+*.safetensors
+wandb/
+runs/
+.ipynb_checkpoints/
+
+# Data
+*.csv
+!data/README.md

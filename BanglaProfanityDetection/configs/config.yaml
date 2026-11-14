@@ -1,0 +1,65 @@
+# Dataset
+data:
+  # Single labelled CSV; every step splits it into train/test with test_size and random_seed
+  train_path: "data/train.csv"
+  text_column: "text"
+  label_column: "label"
+  test_size: 0.2
+  random_seed: 42
+
+# Model configurations
+# Defaults fit a 16 GB GPU (Colab/Kaggle T4). For a 4 GB GPU use max_length 128,
+# batch_size 4-8 and gradient_accumulation_steps 2-4 (optionally gradient_checkpointing: true).
+models:
+  banglabert:
+    name: "sagorsarker/bangla-bert-base"
+    max_length: 256
+    batch_size: 16
+    learning_rate: 2.0e-5
+    epochs: 5
+    warmup_ratio: 0.1
+    weight_decay: 0.01
+    num_labels: 2
+
+  xlmr:
+    name: "xlm-roberta-base"
+    max_length: 256
+    batch_size: 16
+    learning_rate: 2.0e-5
+    epochs: 5
+    warmup_ratio: 0.1
+    weight_decay: 0.01
+    num_labels: 2
+
+# LLM baselines
+llm:
+  groq:
+    # Free-tier options: "qwen/qwen3.8-27b" (preview), "llama-3.1-8b-instant", "openai/gpt-oss-20b".
+    # llama-3.3-70b-versatile now needs an Enterprise Groq account.
+    model: "qwen/qwen3.8-27b"
+    # "none" disables Qwen's reasoning so the reply is just the numbered list.
+    # Remove for models that don't support it (gpt-oss: use low/medium/high).
+    reasoning_effort: "none"
+    batch_size: 25
+    max_retries: 3
+    delay_between_batches: 2
+  gemini:
+    model: "gemini-2.0-flash-lite"
+    batch_size: 25
+
+# Training
+training:
+  output_dir: "results"
+  save_strategy: "epoch"
+  evaluation_strategy: "epoch"
+  load_best_model_at_end: true
+  metric_for_best_model: "f1"
+  num_runs: 3
+  # Fraction of the training split held out for early stopping / best-model selection
+  val_size: 0.1
+
+# Paths
+paths:
+  results: "results"
+  plots: "plots"
+  models: "saved_models"
