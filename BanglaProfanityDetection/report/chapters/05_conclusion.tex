@@ -3,33 +3,33 @@
 
 \section{Conclusion}
 
-Moderation tools are built mainly for English, and it was unclear which approach works best for toxic Bangla comments or what each costs. This thesis compared word lists, two fine-tuned transformers (the Bangla-specific BanglaBERT and the multilingual XLM-RoBERTa) and a zero-shot LLM on the Multi-labeled Bengali Toxic Comments dataset. The six toxicity labels were merged into one binary label and all approaches were scored on one stratified test set of 3,183 comments, with a separate validation split for model selection and three training runs for each fine-tuned model.
+Moderation tools are built mainly for English, and it was unclear which approach works best for toxic Bangla comments. This thesis compared word lists, two fine-tuned transformers (the Bangla-specific BanglaBERT and the multilingual XLM-RoBERTa) and a zero-shot LLM on the Multi-labeled Bengali Toxic Comments dataset. The six toxicity labels were merged into one binary label, and every approach was scored on the same stratified test set of 3,183 comments. Model selection used a separate validation split, and each fine-tuned model was trained three times.
 
-XLM-RoBERTa gave the best weighted F1, 0.943, and BanglaBERT reached 0.928. Both miss only about 5\% of toxic comments, XLM-RoBERTa raises a third fewer false alarms, and both classify around 180 comments per second on a free GPU. With a quarter of the training data both exceed an F1 of 0.90. The zero-shot LLM reached 0.771. It rarely raised false alarms but missed about 40\% of toxic comments and was far slower in the tested setup. The English word list failed completely because its vocabulary does not match Bangla script. A Bangla word list learned from the training data reached 0.860, so word lists can work in Bangla once they use Bangla words, although this one partly learned topic words such as the names of countries and religious groups.
+XLM-RoBERTa gave the best weighted F1, 0.943, and BanglaBERT reached 0.928. Both miss about 5\% of toxic comments, XLM-RoBERTa raises a third fewer false alarms, and both classify around 180 comments per second on a free GPU. With a quarter of the training data both still exceed an F1 of 0.90. The zero-shot LLM reached 0.771. It rarely raised false alarms, but it missed about 40\% of toxic comments and was far slower in the tested setup. The English word list failed completely because its vocabulary does not match Bangla script. A Bangla word list learned from the training data reached 0.860, so word lists can work once they use Bangla words, although many of its false alarms come from single words that are not abusive.
 
-The contribution is a controlled comparison on the same Bangla data, with repeated runs, a learning curve, error examples and speed next to accuracy. For this dataset and hardware, fine-tuning a pretrained transformer on a moderate amount of labelled data was both more accurate and cheaper per comment than prompting an LLM through a free API. This comes from one dataset, two checkpoints, one LLM with one prompt and a free-tier setup, and need not hold for other models, a paid LLM service or other deployments.
+For this dataset and setup, fine-tuning a pretrained transformer on a moderate amount of labelled data gave higher accuracy and higher throughput than prompting one LLM through a free API. Cost was not measured. The result comes from one dataset, two checkpoints, one LLM with one prompt and a free-tier setup, and it may not hold for other models, a paid LLM service or other deployments.
 
 \section{Limitations}
 
 \begin{itemize}
-  \item \textbf{Single dataset.} All experiments use one dataset assembled from three earlier collections, and generalisation to other platforms, topics or periods was not tested.
-  \item \textbf{Binary labels.} The six toxicity types were merged, so the thesis does not evaluate how well each type is detected.
-  \item \textbf{Bangla script only.} Romanised Bangla and code-mixed text, which are common on social media, were not studied.
-  \item \textbf{One LLM and one prompt.} Zero-shot results can depend strongly on the prompt wording, and the LLM was run once for the reported scores. The speed comparison reflects a free API tier and a local GPU, not the models themselves.
-  \item \textbf{Simple word lists.} The English list is not representative of Bangla filtering, and the Bangla list is learned automatically and not curated by hand.
-  \item \textbf{Two checkpoints, no tuning, few runs.} The model comparison covers two specific checkpoints with standard settings. Three runs give only a rough estimate of variability, and the learning curve uses one run per size.
-  \item \textbf{Annotation and data bias.} Annotation is partly subjective, as the agreement for trolling and threats and the label noise seen in the error examples show, and possible bias in the source datasets was not investigated.
-  \item \textbf{Near-duplicates and source overlap.} Only exact duplicates were removed, so near-duplicates or comments from the same source may appear on both sides of the split and make the scores somewhat optimistic.
+  \item All experiments use one dataset assembled from three earlier collections, so generalisation to other platforms, topics or periods was not tested.
+  \item The six toxicity types were merged, so the thesis cannot say how well each type, such as threats or religious hate, is detected.
+  \item Romanised Bangla and code-mixed text were not studied, and the dataset contains almost none.
+  \item Only one LLM and one prompt were tested, and the LLM was run once for the reported scores. Zero-shot results can depend strongly on prompt wording. The speed comparison reflects a free API tier and a local GPU, not the models themselves.
+  \item The English word list is not representative of Bangla filtering, and the Bangla list is learned automatically and not curated by hand.
+  \item The model comparison covers two checkpoints with standard settings and no tuning. Three runs give only a rough estimate of variability, and the learning curve has one run per size.
+  \item Annotation is partly subjective, as the agreement for trolling and threats and the apparent label noise in the error examples show. Possible bias in the source datasets was not investigated.
+  \item Only exact duplicates were removed. Near-duplicates or comments from the same source may fall on both sides of the split and make the scores somewhat optimistic.
 \end{itemize}
 
 \section{Future Work}
 
 \begin{itemize}
-  \item \textbf{Stronger models.} Evaluate \texttt{csebuetnlp/banglabert} \cite{bhattacharjee2022banglabert} and larger multilingual models such as XLM-RoBERTa-large.
-  \item \textbf{Multi-label classification.} Predict the six toxicity types directly, which supports more nuanced moderation policies.
-  \item \textbf{Cross-dataset and cross-domain tests.} Train on this dataset and test on others such as BD-SHS \cite{romim2022bdshs} and on other platforms.
-  \item \textbf{Robustness.} Test spelling variation, code-mixed text and obfuscated or adversarial comments, and adapt data in Romanised and mixed Bangla--English.
-  \item \textbf{Better LLM use.} Test few-shot prompts, prompts with the annotation guidelines and other LLMs.
-  \item \textbf{Human-in-the-loop moderation.} Handle confident predictions automatically and send uncertain ones to human moderators, and measure the manual work saved.
-  \item \textbf{Explainability.} Highlight the words that drive each prediction, to help moderators trust the system.
+  \item Evaluate \texttt{csebuetnlp/banglabert} \cite{bhattacharjee2022banglabert} and larger multilingual models such as XLM-RoBERTa-large.
+  \item Predict the six toxicity types directly, which allows more nuanced moderation policies.
+  \item Train on this dataset and test on others such as BD-SHS \cite{romim2022bdshs}, and on comments from other platforms.
+  \item Test spelling variation, code-mixed text and obfuscated comments, and collect data in Romanised and mixed Bangla--English.
+  \item Try few-shot prompts, prompts that contain the annotation guidelines, and other LLMs.
+  \item Build a workflow in which confident predictions are handled automatically and uncertain ones go to human moderators, and measure the manual work it saves.
+  \item Highlight the words that drive each prediction, to help moderators judge the output.
 \end{itemize}
