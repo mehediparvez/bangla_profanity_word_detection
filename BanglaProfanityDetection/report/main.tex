@@ -49,6 +49,10 @@
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit}
 \usepackage[hidelinks]{hyperref}
 
+% Visible marker for a value that still has to come from an experiment or a source.
+% Search the PDF for "TODO" before submission; none should remain.
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+
 % natbib + BibTeX compiles much faster than biblatex + Biber on the free Overleaf plan
 \usepackage[numbers,sort&compress]{natbib}
 \renewcommand{\bibname}{References}
@@ -119,7 +123,8 @@ Signature & Signature \\[1.5cm]
 \textbf{Chairman of the Exam Committee} & \textbf{Supervisor} \\
 \chairmanrank & \supervisorrank \\
 Department of CSE & Department of CSE \\
-Comilla University, Cumilla. & Comilla University, Cumilla. \\
+Comilla University, Cumilla. & Comilla University, Cumilla. \\[0.8cm]
+Date: \makebox[3.5cm]{\dotfill} & Date: \makebox[3.5cm]{\dotfill} \\
 \end{tabular}
 
 \newpage
@@ -132,13 +137,13 @@ Comilla University, Cumilla. & Comilla University, Cumilla. \\
 \addcontentsline{toc}{chapter}{Abstract}
 \justifying
 
-Toxic and abusive comments are widespread on Bangla social media, yet most moderation tools are built for English. This thesis compares four ways of detecting toxic Bangla comments automatically: a word-list (lexicon) filter, two fine-tuned transformer models (the Bangla-specific BanglaBERT and the multilingual XLM-RoBERTa), and a large language model (LLM) used zero-shot, without any task-specific training.
+Toxic and abusive comments are widespread on Bangla social media, yet most moderation tools are built for English. This thesis compares ways of detecting toxic Bangla comments automatically: word-list (lexicon) filters, two fine-tuned transformer models (the Bangla-specific BanglaBERT and the multilingual XLM-RoBERTa), and a large language model (LLM) used zero-shot, without any task-specific training.
 
-The study uses the Multi-labeled Bengali Toxic Comments dataset. Its six toxicity labels (vulgar, hate, religious, threat, troll and insult) are merged into one binary label, giving 15,913 comments after cleaning, of which 53.2\% are toxic. All methods are scored on the same stratified test set of 3,183 comments. Model selection uses a separate validation split, so the test set is used only for final scores. Each fine-tuned model is trained three times with different random seeds, and a learning curve measures how much labelled data the models need.
+The study uses the Multi-labeled Bengali Toxic Comments dataset. Its six toxicity labels (vulgar, hate, religious, threat, troll and insult) are converted into one binary toxic or non-toxic label, giving 15,913 comments after cleaning, of which 53.2\% are toxic. The approaches are scored on one stratified test set of 3,183 comments. The LLM classified only 3,033 of these before the free API limit was reached, so the comparison is also made on those 3,033 comments. Model selection uses a separate validation split, so the test set is used only for final scores. Each fine-tuned model is trained three times with different random seeds, and a learning curve measures how much labelled data the models need.
 
-XLM-RoBERTa achieves the best result, with a weighted F1-score of 0.943 $\pm$ 0.001, ahead of BanglaBERT at 0.928 $\pm$ 0.003, and it stays ahead at every amount of training data. The zero-shot LLM (Qwen, accessed through the Groq API) reaches an F1-score of 0.768. It is highly precise when it flags a comment as toxic (precision 0.97) but misses 41\% of toxic comments, and it runs about 70 times slower than the fine-tuned models. The English word-list filter fails almost completely (F1 0.299) because it does not recognise Bangla words.
+On the full test set, XLM-RoBERTa achieves the best weighted F1-score, 0.943 $\pm$ 0.001, ahead of BanglaBERT at 0.928 $\pm$ 0.003, and it stays ahead at every amount of training data. The zero-shot LLM (Qwen, accessed through the Groq API) reaches a weighted F1-score of 0.768 on the comments it classified. It is highly precise when it flags a comment as toxic (precision 0.97) but misses 41\% of toxic comments, and in the tested free-tier setup it classifies about 70 times fewer comments per second than the fine-tuned models. An English word-list filter fails almost completely (weighted F1 0.299) because it does not recognise Bangla words. \todo{One sentence on the Bangla word list learned from the training data.}
 
-The results show that fine-tuning a pretrained transformer on a modest amount of labelled Bangla data clearly outperforms both lexicon filtering and zero-shot prompting of a general-purpose LLM, while also being far cheaper to run. A multilingual model pretrained on a very large corpus can outperform a smaller language-specific model. The thesis also provides a reproducible pipeline that runs on free cloud GPUs, and a web demo.
+Under these conditions, fine-tuning a pretrained transformer on a modest amount of labelled Bangla data clearly outperforms word lists and zero-shot prompting of one general-purpose LLM, and it is cheaper to run. In this experiment a multilingual model outperformed a Bangla-specific one, but the comparison covers only these two checkpoints and one dataset, and does not show that multilingual models are better in general. The code and notebooks are public, and the thesis includes a web demo.
 
 \textbf{Keywords:} Bangla, toxic comment detection, hate speech, BanglaBERT, XLM-RoBERTa, large language models, zero-shot classification, low-resource NLP.
 
@@ -174,6 +179,7 @@ Finally, I thank my family and friends for their support and patience throughout
 \begin{tabular}{@{}ll@{}}
 API     & Application Programming Interface \\
 BERT    & Bidirectional Encoder Representations from Transformers \\
+CI      & Confidence Interval \\
 F1      & Harmonic mean of precision and recall \\
 FN / FP & False Negative / False Positive \\
 GPU     & Graphics Processing Unit \\
@@ -205,5 +211,11 @@ XLM-R   & XLM-RoBERTa (Cross-lingual Language Model, RoBERTa architecture) \\
 \addcontentsline{toc}{chapter}{References}
 \bibliographystyle{unsrtnat}
 \bibliography{ref}
+
+% ===========================================================================
+% Appendices
+% ===========================================================================
+\appendix
+\input{chapters/06_appendices}
 
 \end{document}

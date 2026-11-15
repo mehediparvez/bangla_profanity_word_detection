@@ -1,54 +1,73 @@
 \chapter{Results and Discussion}
 \justifying
 
-This chapter presents the results of the four approaches on the common test set, analyses their errors, training behaviour and speed, and then answers the research questions.
+This chapter presents the results of the approaches on the test set, analyses their errors, training behaviour and speed, and then answers the research questions. One point about coverage comes first. The LLM was scored on 3,033 of the 3,183 test comments, because the free API limit was reached before it had classified the rest. The other approaches classified all 3,183. The comparison is therefore given twice: on the full test set for the approaches that completed it, and on the 3,033 comments that every approach classified.
 
 \section{Overall Comparison}
 
-Table~\ref{tab:main} summarises the performance of all four approaches, and Figure~\ref{fig:f1bar} compares their F1-scores.
+Table~\ref{tab:main} gives the results on the full test set, and Table~\ref{tab:common} repeats the comparison on the 3,033 comments that the LLM classified. Figure~\ref{fig:f1bar} compares the F1-scores.
 
 \begin{table}[H]
   \centering
-  \caption{Results on the test set (3,183 comments). Fine-tuned models: mean $\pm$ standard deviation over three runs. Precision, recall and F1 are weighted averages. Speed is comments per second.}
+  \caption{Results on the full test set (3,183 comments) for the approaches that classified all of it. Fine-tuned models: mean $\pm$ standard deviation over three runs. Precision, recall and F1 are weighted averages. Speed is comments per second on the setup described in Section~\ref{sec:speed}.}
   \label{tab:main}
   \small
   \begin{tabular}{lccccr}
     \toprule
     \textbf{Model} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{Speed} \\
     \midrule
-    better\_profanity (lexicon) & 0.4684 & 0.2194 & 0.4684 & 0.2989 & 21.4 \\
-    LLM, zero-shot (Qwen)$^{*}$ & 0.7748 & 0.8347 & 0.7748 & 0.7681 & 2.6 \\
+    better\_profanity (English word list) & 0.4684 & 0.2194 & 0.4684 & 0.2989 & 21.4 \\
+    Bangla word list (training data) & \todo{value} & \todo{value} & \todo{value} & \todo{value} & \todo{value} \\
     BanglaBERT (fine-tuned) & 0.9276 $\pm$ 0.0035 & 0.9279 & 0.9276 & 0.9276 $\pm$ 0.0035 & 183.3 \\
     \textbf{XLM-RoBERTa (fine-tuned)} & \textbf{0.9430 $\pm$ 0.0013} & \textbf{0.9433} & \textbf{0.9430} & \textbf{0.9430 $\pm$ 0.0013} & 177.2 \\
     \bottomrule
   \end{tabular}
+\end{table}
 
-  \vspace{0.2cm}
-  \footnotesize $^{*}$Scored on the 3,033 of 3,183 test comments that it classified before the daily API limit was reached (Section~\ref{sec:llm}).
+\begin{table}[H]
+  \centering
+  \caption{Results on the 3,033 test comments that the LLM classified, for all approaches. Fine-tuned models use the first run. F1 is the weighted F1-score, and Toxic F1 is the F1-score of the toxic class alone. CI is the 95\% bootstrap interval of the weighted F1.}
+  \label{tab:common}
+  \small
+  \begin{tabular}{lcccc}
+    \toprule
+    \textbf{Model} & \textbf{Accuracy} & \textbf{F1} & \textbf{Toxic F1} & \textbf{F1, 95\% CI} \\
+    \midrule
+    better\_profanity (English word list) & \todo{value} & \todo{value} & \todo{value} & \todo{value} \\
+    Bangla word list (training data) & \todo{value} & \todo{value} & \todo{value} & \todo{value} \\
+    LLM, zero-shot (Qwen) & 0.7748 & 0.7681 & 0.737 & \todo{value} \\
+    BanglaBERT (fine-tuned) & \todo{value} & \todo{value} & \todo{value} & \todo{value} \\
+    XLM-RoBERTa (fine-tuned) & \todo{value} & \todo{value} & \todo{value} & \todo{value} \\
+    \bottomrule
+  \end{tabular}
 \end{table}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.85\textwidth]{f1_comparison.png}
-  \caption{Weighted F1-score of each approach on the test set. Error bars show the standard deviation over three runs for the fine-tuned models.}
+  \caption{Weighted F1-score of each approach. Error bars show the standard deviation over three runs for the fine-tuned models. The LLM bar is computed on the 3,033 comments it classified.}
   \label{fig:f1bar}
 \end{figure}
 
-The fine-tuned transformers clearly outperform the other two approaches. XLM-RoBERTa is the best model, with an F1-score of 0.943, followed by BanglaBERT at 0.928. The zero-shot LLM is about 16 F1 points behind them, and the lexicon filter barely works. The sections below look at each approach in more detail.
+The fine-tuned transformers clearly outperform the other approaches. XLM-RoBERTa is the best model, with an F1-score of 0.943, followed by BanglaBERT at 0.928. The zero-shot LLM is about 16 F1 points behind them, and the English word list barely works. The sections below look at each approach in more detail. In Table~\ref{tab:main}, precision and recall of the fine-tuned models are means over the three runs, and F1 and accuracy also show their standard deviation. All other columns of Table~\ref{tab:common} come from a single run of each fine-tuned model.
 
-\section{Lexicon Baseline}
+\section{Word-list Baselines}
 
-The \texttt{better\_profanity} filter reaches an accuracy of 0.468 and an F1-score of 0.299. Its confusion matrix (Figure~\ref{fig:cm}) shows that it labelled every one of the 3,183 test comments as non-toxic, so its accuracy simply equals the share of non-toxic comments in the test set ($1{,}491/3{,}183 = 0.468$). The reason is that its word list contains English words, which almost never occur in Bangla script. This confirms that an off-the-shelf English profanity filter offers no protection for Bangla users, and that toxicity detection needs language-specific resources.
+The \texttt{better\_profanity} filter reaches an accuracy of 0.468 and an F1-score of 0.299. Its confusion matrix (Figure~\ref{fig:cm}) shows that it labelled every one of the 3,183 test comments as non-toxic, so its accuracy simply equals the share of non-toxic comments in the test set ($1{,}491/3{,}183 = 0.468$). The reason is that its word list contains English words, which almost never occur in Bangla script. The result shows that an off-the-shelf English profanity filter gives no protection for Bangla comments. It does not show that word lists are ineffective in general, because the failure comes from the language mismatch and not from the idea of a word list.
+
+The Bangla word list built from the training data is the fairer test of a lexicon approach. It reached an F1-score of \todo{value} on the full test set, using a list of \todo{size} words with cut-offs of \todo{settings} chosen on the validation set. \todo{One or two sentences on what the result shows, after the experiment is run, and on which kinds of toxic comment the list misses.}
 
 \section{Fine-tuned Transformer Models}
 
 \subsection{Performance and Stability}
 
-The F1-scores of the three BanglaBERT runs were 0.9270, 0.9236 and 0.9321 (mean 0.9276, standard deviation 0.0035). The three XLM-RoBERTa runs scored 0.9412, 0.9444 and 0.9433 (mean 0.9430, standard deviation 0.0013). The gap between the two models (about 1.5 F1 points) is more than four times the larger standard deviation, and every XLM-RoBERTa run scored higher than every BanglaBERT run. The difference is therefore consistent across random seeds, although three runs are too few for a formal significance test. XLM-RoBERTa is also the more stable of the two models. A training run took about 14 minutes for BanglaBERT and 17 minutes for XLM-RoBERTa on the T4 GPU.
+The F1-scores of the three BanglaBERT runs were 0.9270, 0.9236 and 0.9321 (mean 0.9276, standard deviation 0.0035). The three XLM-RoBERTa runs scored 0.9412, 0.9444 and 0.9433 (mean 0.9430, standard deviation 0.0013). Every XLM-RoBERTa run scored higher than every BanglaBERT run, and the gap between the means is about 1.5 F1 points. A training run took about 14 minutes for BanglaBERT and 17 minutes for XLM-RoBERTa on the T4 GPU.
+
+Three runs are too few for a formal significance test, so the uncertainty was described in two other ways. The 95\% bootstrap confidence interval of the first-run weighted F1 is \todo{interval} for BanglaBERT and \todo{interval} for XLM-RoBERTa. A paired exact McNemar test on the first-run predictions found that \todo{n} test comments were classified correctly only by XLM-RoBERTa and \todo{n} only by BanglaBERT ($p=\todo{value}$). \todo{State what the intervals and the test show, without going beyond them.} These checks cover the sampling of the test comments and one training run of each model. They do not replace more training runs.
 
 \subsection{Error Analysis}
 
-Figure~\ref{fig:cm} shows the confusion matrices of all four approaches, and Table~\ref{tab:perclass} gives per-class scores for the three approaches that detect toxicity at all.
+Figure~\ref{fig:cm} shows the confusion matrices of all approaches, and Table~\ref{tab:perclass} gives per-class scores for the approaches that detect toxicity at all.
 
 \begin{figure}[H]
   \centering
@@ -79,9 +98,29 @@ Figure~\ref{fig:cm} shows the confusion matrices of all four approaches, and Tab
 
 The two fine-tuned models make different kinds of errors. BanglaBERT leans towards flagging comments: it misses only 82 of 1,692 toxic comments (4.8\%), but wrongly flags 150 of 1,491 non-toxic ones (10.1\%). XLM-RoBERTa misses a similar number of toxic comments (86, or 5.1\%) while raising a third fewer false alarms (101, or 6.8\%). Its advantage therefore comes mainly from recognising harmless comments more reliably. For a moderation system this matters, because every false alarm means a legitimate comment is hidden or sent for manual review.
 
+Counts do not say why the models fail, so Table~\ref{tab:errors} lists examples of misclassified comments from the first run, chosen at random from the errors and cleaned of any names, handles and links.
+
+\begin{table}[H]
+  \centering
+  \caption{Examples of misclassified test comments (first run).}
+  \label{tab:errors}
+  \small
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{1.6cm} >{\raggedright\arraybackslash}p{1.6cm} >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Model} & \textbf{Comment} & \textbf{True} & \textbf{Predicted} & \textbf{Likely reason} \\
+    \midrule
+    \todo{model} & \todo{Bangla comment from results/analysis/analysis.json} & \todo{label} & \todo{label} & \todo{reason after reading the comment} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\todo{Two or three paragraphs on the patterns seen in the examples: whether false positives are comments that quote or discuss offensive words, whether false negatives are indirect insults, sarcasm or slang, and whether spelling variants play a part. Only patterns actually found in the sampled comments may be stated.}
+
 \subsection{Training Dynamics}
 
-Figure~\ref{fig:dynamics} shows the training and validation loss and the validation F1-score of a BanglaBERT training run over its five epochs. The training loss falls steadily from 0.26 to 0.03. The validation loss is lowest after the first epoch and then rises to 0.58, while the validation F1-score still improves slightly, from 0.903 to 0.914. The model therefore becomes increasingly over-confident on the examples it gets wrong (overfitting, as measured by the loss), even though the number of correct decisions keeps rising a little. Selecting checkpoints by validation F1 rather than validation loss is therefore appropriate for this task. Fewer epochs, or stronger regularisation, would likely give similar F1-scores at a lower training cost.
+Figure~\ref{fig:dynamics} shows the training and validation loss and the validation F1-score of a BanglaBERT training run over its five epochs. The training loss falls steadily from 0.26 to 0.03. The validation loss is lowest after the first epoch and then rises to 0.58, while the validation F1-score still improves slightly, from 0.903 to 0.914.
+
+Loss and F1 measure different things. F1 depends only on whether the predicted class is right, while the loss also depends on how confident the model is. When a model becomes more and more confident, a small number of wrong predictions made with very high confidence raise the loss strongly, even if the number of correct decisions keeps rising slightly. This is a sign of overfitting in terms of calibration. Early stopping and checkpoint selection here use validation F1, so training continues to the epoch with the best F1 and not to the epoch with the lowest loss. Fewer epochs or stronger regularisation would likely give similar F1-scores at a lower training cost. \todo{Add the same figure for XLM-RoBERTa and one sentence comparing the two.}
 
 \begin{figure}[H]
   \centering
@@ -92,7 +131,23 @@ Figure~\ref{fig:dynamics} shows the training and validation loss and the validat
 
 \subsection{Effect of Training Data Size}
 
-Figure~\ref{fig:lc} shows the test F1-score when the models are trained on 25\%, 50\% and 100\% of the training data.
+Table~\ref{tab:lc} and Figure~\ref{fig:lc} show the test F1-score when the models are trained on 25\%, 50\% and 100\% of the training data. The subsets are the first 25\% and 50\% of the shuffled training set, each trained once with seed 42 (Section~3.7.3).
+
+\begin{table}[H]
+  \centering
+  \caption{Learning curve: test scores against the number of training comments. Single run per size (seed 42).}
+  \label{tab:lc}
+  \begin{tabular}{rrcccc}
+    \toprule
+    & & \multicolumn{2}{c}{\textbf{BanglaBERT}} & \multicolumn{2}{c}{\textbf{XLM-RoBERTa}} \\
+    \textbf{Share} & \textbf{Comments} & Accuracy & F1 & Accuracy & F1 \\
+    \midrule
+    25\%  & 3,182  & \todo{v} & 0.906 & \todo{v} & 0.914 \\
+    50\%  & 6,365  & \todo{v} & \todo{v} & \todo{v} & 0.936 \\
+    100\% & 12,730 & \todo{v} & 0.927 & \todo{v} & \todo{v} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \begin{figure}[H]
   \centering
@@ -101,40 +156,65 @@ Figure~\ref{fig:lc} shows the test F1-score when the models are trained on 25\%,
   \label{fig:lc}
 \end{figure}
 
-Three observations stand out. First, both models already perform well with little data: trained on only 3,182 comments (25\%), they reach F1-scores of 0.906 (BanglaBERT) and 0.914 (XLM-RoBERTa), far above the zero-shot LLM. Second, both curves are still rising at 100\%: going from half to all of the data adds 1.2 F1 points for BanglaBERT and 0.8 for XLM-RoBERTa. More labelled data would therefore probably still help, although with diminishing returns. Third, XLM-RoBERTa is ahead at every data size, and XLM-RoBERTa trained on half of the data (0.936) already outperforms BanglaBERT trained on all of it (0.927).
+Three observations stand out. First, both models already perform well with little data: trained on only 3,182 comments (25\%), they reach F1-scores of 0.906 (BanglaBERT) and 0.914 (XLM-RoBERTa), far above the zero-shot LLM. Second, the curves are still rising at 100\%: going from half to all of the data adds 1.2 F1 points for BanglaBERT and 0.8 for XLM-RoBERTa. This suggests that more labelled data would probably help further, with diminishing returns, but the experiment does not show that. Third, XLM-RoBERTa is ahead at every data size, and XLM-RoBERTa trained on half of the data (0.936) already outperforms BanglaBERT trained on all of it (0.927). Because each point is a single run, differences of a few tenths of a point between neighbouring points should not be over-read.
 
 \section{Zero-shot LLM Baseline}
 \label{sec:llm}
 
-The LLM classified 3,033 of the 3,183 test comments. The remaining 150 comments (six batches) were not classified because the free tier of the API limits usage to 200,000 tokens per day \cite{groqdocs}. Because the test set is in random order, the missing comments are an essentially random subset, so excluding them should not bias the result noticeably. They are excluded from the LLM's scores rather than counted as errors.
+The LLM classified 3,033 of the 3,183 test comments. The remaining 150 comments (six batches) were not classified because the free tier of the API limits usage to 200,000 tokens per day \cite{groqdocs}. They are excluded from the LLM's scores and not counted as errors. It was assumed at first that they are an essentially random subset, because the test set is in random order. This can be checked. Of the 3,033 classified comments, \todo{n} (\todo{share}\%) are toxic, and of the 150 unclassified ones \todo{n} (\todo{share}\%) are toxic. \todo{State whether the difference is small enough to support the assumption, with the test result.}
 
-The LLM reaches an F1-score of 0.768. Its behaviour is very different from that of the fine-tuned models (Table~\ref{tab:perclass}). When it labels a comment as toxic, it is almost always right: toxic precision is 0.971, with only 29 false alarms. However, it misses 654 of 1,613 toxic comments, a toxic recall of only 0.595. In other words, the model is very \emph{conservative}: it flags only clearly offensive comments and lets milder insults, trolling and implicit attacks through. Possible explanations include the model's limited exposure to informal Bangla, including slang and spelling variants, differences between the model's notion of toxicity and the dataset's annotation guidelines (which count trolling and mild insults as toxic), and the absence of any examples in the prompt.
+The LLM reaches an F1-score of 0.768. Its behaviour is very different from that of the fine-tuned models (Table~\ref{tab:perclass}). When it labels a comment as toxic, it is almost always right: toxic precision is 0.971, with only 29 false alarms. However, it misses 654 of 1,613 toxic comments, a toxic recall of only 0.595. In other words, the model is very \emph{conservative}: it flags clearly offensive comments and lets many milder insults, trolling and implicit attacks through. Possible explanations include the model's limited exposure to informal Bangla, including slang and spelling variants, differences between the model's notion of toxicity and the dataset's annotation guidelines (which count trolling and mild insults as toxic), and the absence of any examples in the prompt. These are explanations, not findings. \todo{Add examples of toxic comments the LLM missed from Table~\ref{tab:errors} and say what they have in common.}
 
-The LLM is also slow in this setup: 2.6 comments per second, compared with about 180 for the fine-tuned models. Classifying the full test set took roughly 20 minutes and used almost the entire daily free-tier allowance, and the approach depends on an external service. These factors make zero-shot prompting impractical for large-scale moderation, although it may still be useful as a quick, high-precision first filter where no labelled data is available.
+Two limits apply to this result. Only one prompt was used, and a zero-shot LLM can be sensitive to the wording of the instruction, so a different prompt could give a different balance between precision and recall. Only one model was tested, the Qwen model named in Chapter~3, which was chosen because it was available on the free tier and has open weights, not because it was found to be the best.
 
 \section{Inference Efficiency}
+\label{sec:speed}
 
-Figure~\ref{fig:speed} plots accuracy against speed. The fine-tuned models are both the most accurate and the fastest. They classify about 180 comments per second on a single free GPU, roughly 70 times faster than the LLM. Once trained, they also run without any external service or per-request cost. The lexicon filter is relatively slow, at 21 comments per second, probably because it checks every word against its list in pure Python.
+Table~\ref{tab:main} gives the speed in comments per second, and Figure~\ref{fig:speed} plots accuracy against speed. The fine-tuned models classify about 180 comments per second on a single free GPU. The LLM classified 2.6 comments per second in this setup, which is roughly 70 times slower, and classifying the full test set took roughly 20 minutes and used almost the entire daily free-tier allowance. Once trained, the fine-tuned models run without any external service or per-request cost.
+
+The comparison has to be read with care. The fine-tuned models ran on a local T4 GPU. The LLM time is end-to-end and includes the network round-trip, the provider's processing and the pauses needed to respect the free-tier rate limits. The factor of 70 therefore describes this free-tier API setup, not the speed of the model itself, and a paid or self-hosted deployment could be much faster. Timing was repeated \todo{number} times for the fine-tuned models after a warm-up pass, and the total time for the full test set was \todo{seconds} seconds for BanglaBERT and \todo{seconds} seconds for XLM-RoBERTa. The English word list is relatively slow, at 21 comments per second, probably because it checks every word against its list in pure Python.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.85\textwidth]{accuracy_vs_speed.png}
-  \caption{Accuracy against inference speed. The fine-tuned models are both the most accurate and the fastest. Fine-tuned model accuracy is from the first run.}
+  \caption{Accuracy against inference speed. The fine-tuned models are both the most accurate and the fastest in this setup. Fine-tuned model accuracy is from the first run.}
   \label{fig:speed}
 \end{figure}
 
 \section{Comparison with Previous Work}
 
-Belal et al. \cite{belal2023toxic} reported a binary toxic-versus-non-toxic accuracy of 89.42\% on the same dataset. The fine-tuned models in this thesis reach a mean accuracy of 92.8\% (BanglaBERT) and 94.3\% (XLM-RoBERTa). The results are not directly comparable, because the train/test splits, preprocessing (this thesis removes duplicate comments) and evaluation details differ. Nevertheless, they indicate that fine-tuning modern pretrained transformers is a strong approach for this dataset.
+Belal et al. \cite{belal2023toxic} reported a binary toxic-versus-non-toxic accuracy of 89.42\% on the same dataset, and 88.57\% for a fine-tuned Bangla BERT. Table~\ref{tab:belal} lists the main differences between their setup and this one.
+
+\begin{table}[H]
+  \centering
+  \caption{Setup of Belal et al. \cite{belal2023toxic} compared with this study.}
+  \label{tab:belal}
+  \small
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.2cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Criterion} & \textbf{Belal et al.} & \textbf{This study} \\
+    \midrule
+    Dataset & 16,073 comments & Same dataset, 15,913 after cleaning \\
+    Task & Binary, then six-type multi-label & Binary \\
+    Preprocessing & Punctuation, emoticons, links and stop words removed & Whitespace trimmed, empty and exact duplicates removed \\
+    Split & 60\% train, 24\% validation, 16\% test & 80\% train (10\% of it for validation), 20\% test \\
+    Maximum length & 300 tokens & 256 tokens \\
+    Methods & LSTM on Bangla BERT embeddings, MConv-LSTM, fine-tuned Bangla BERT & Fine-tuned BanglaBERT and XLM-RoBERTa, zero-shot Qwen, word lists \\
+    Best binary accuracy & 89.42\% (LSTM); 88.57\% (fine-tuned Bangla BERT) & 92.76\% (BanglaBERT); 94.30\% (XLM-RoBERTa) \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+The figures are not directly comparable. The two studies use different splits and test sets, different preprocessing, and this thesis removes duplicate comments and reports a mean over three seeds. The numbers do not show that the models here are better in a controlled sense. They show that fine-tuning modern pretrained transformers gives results on this dataset that are at least as good as those reported with the original setup. Belal et al. also cite Sarker's Bangla BERT \cite{sarker2020banglabert} as their embedding and fine-tuning model, so the gap between their 88.57\% and the 92.76\% found here is more likely due to the differences in the table than to a different model.
 
 \section{Answers to the Research Questions}
 
-\textbf{RQ1: How accurately can fine-tuned transformers detect toxic Bangla comments?} Very accurately. Both models exceed an F1-score of 0.92 and miss only about 5\% of toxic comments, and their results vary little between runs.
+\textbf{RQ1: How effectively can fine-tuned transformers detect toxic Bangla comments?} Very effectively on this dataset. Both models exceed a weighted F1-score of 0.92 (Table~\ref{tab:main}) and miss only about 5\% of toxic comments (Table~\ref{tab:perclass}), and their results vary little between runs. The result holds for this dataset and these two models.
 
-\textbf{RQ2: Does the Bangla-specific model outperform the multilingual one?} No. XLM-RoBERTa outperforms BanglaBERT by about 1.5 F1 points, consistently across seeds and at every training-data size, mainly by raising fewer false alarms. A likely explanation is that XLM-RoBERTa was pretrained on far more data overall (2.5 TB of filtered web text) and has a larger vocabulary, so it may have seen more of the informal, varied language found in social-media comments. The result shows that being language-specific does not by itself guarantee better performance, although a larger Bangla model such as \texttt{csebuetnlp/banglabert} \cite{bhattacharjee2022banglabert} may close the gap.
+\textbf{RQ2: Does the Bangla-specific model outperform the multilingual one?} No, not here. XLM-RoBERTa outperforms BanglaBERT by about 1.5 F1 points (0.943 against 0.928), in every run and at every training-data size (Figure~\ref{fig:lc}), mainly by raising fewer false alarms. A possible explanation is that XLM-RoBERTa was pretrained on much more data (2.5 TB of filtered web text) and has a larger vocabulary, so it may have seen more of the informal language of social media. The experiment does not test this explanation. The two models also differ in architecture details, tokeniser and pretraining data, so the result concerns these two checkpoints and this dataset. It does not show that multilingual models are better than language-specific ones in general. Hasan et al. \cite{hasan2025banglamultihate} found that language-grounded pretraining remained important on a different hate speech task with different models, and a larger Bangla model such as \texttt{csebuetnlp/banglabert} \cite{bhattacharjee2022banglabert} may well close the gap seen here.
 
-\textbf{RQ3: How does a zero-shot LLM compare?} It is clearly worse, with an F1-score of 0.768 against 0.928--0.943. It is very precise but misses about 41\% of toxic comments, and it is about 70 times slower in this setup. Fine-tuning on a few thousand labelled examples remains the better choice when labelled data is available.
+\textbf{RQ3: How does a zero-shot LLM compare in performance and efficiency?} It is clearly worse in this setup. Its F1-score is 0.768 against 0.928--0.943 (Table~\ref{tab:common}). It is very precise (toxic precision 0.971) but misses about 41\% of toxic comments, and it classified about 2.6 comments per second against about 180 for the fine-tuned models, a difference that also reflects the free-tier API setup. When labelled data is available, fine-tuning remains the better choice in this comparison. A zero-shot prompt may still be useful as a quick, high-precision first filter where no labelled data exists.
 
-\textbf{RQ4: Is a lexicon filter adequate?} No. An off-the-shelf English profanity filter did not flag a single toxic comment in the Bangla test set.
+\textbf{RQ4: How effective are word-list filters?} The English word list was not effective: it did not flag a single toxic comment in the Bangla test set, because its vocabulary does not match Bangla script. The Bangla word list built from the training data reached an F1-score of \todo{value} (Table~\ref{tab:main}). \todo{One sentence comparing it with the transformers.}
 
-\textbf{RQ5: How does performance depend on training data size?} Performance rises steadily with more data, but even a quarter of the training set (about 3,200 comments) gives F1-scores above 0.90. The curves have not flattened at 12,730 comments, so collecting more labelled data would probably bring further, smaller gains.
+\textbf{RQ5: How does performance depend on training data size?} Performance rises with more data, but even a quarter of the training set (3,182 comments) gives F1-scores above 0.90 (Table~\ref{tab:lc}). The curves had not flattened at 12,730 comments, so more labelled data would be expected to bring further, smaller gains. This is an expectation from the shape of the curves, not a measured result.

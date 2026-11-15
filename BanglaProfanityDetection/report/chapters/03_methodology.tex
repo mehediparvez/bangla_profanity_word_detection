@@ -1,11 +1,11 @@
 \chapter{Methodology}
 \justifying
 
-This chapter describes the research design, the dataset and its preparation, the four detection approaches, the training configuration and the evaluation protocol.
+This chapter describes the research design, the dataset and its preparation, the detection approaches, the training configuration and the evaluation protocol.
 
 \section{Research Design}
 
-The study is an empirical, comparative experiment. All four approaches classify each comment as \emph{toxic} or \emph{non-toxic}, and all are scored on exactly the same held-out test set. Figure~\ref{fig:pipeline} summarises the pipeline.
+The study is an empirical, comparative experiment. All approaches classify each comment as \emph{toxic} or \emph{non-toxic}, and all are scored on the same held-out test set. Figure~\ref{fig:pipeline} summarises the pipeline.
 
 \begin{figure}[!htb]
   \centering
@@ -21,12 +21,12 @@ The study is an empirical, comparative experiment. All four approaches classify 
     \node[databox] (split) at (9,0)   {Stratified split\\(seed 42)};
     \node[databox, text width=4.2cm] (train) at (5.1,-2.0) {Training set: 12,730\\90\% fit / 10\% validation};
 
-    \node[modelbox] (lex) at (0,-4.0)    {Lexicon filter\\(better\_profanity)};
+    \node[modelbox] (lex) at (0,-4.0)    {Word lists\\(English, Bangla)};
     \node[modelbox] (bb)  at (3.4,-4.0)  {BanglaBERT\\fine-tuned};
     \node[modelbox] (xr)  at (6.8,-4.0)  {XLM-RoBERTa\\fine-tuned};
     \node[modelbox] (llm) at (10.2,-4.0) {Zero-shot LLM\\(Qwen via Groq)};
 
-    \node[resultbox] (eval) at (5.1,-5.9) {Evaluation on the same 3,183 test comments:\\accuracy, precision, recall, F1, confusion matrix, speed};
+    \node[resultbox] (eval) at (5.1,-5.9) {Evaluation on the held-out test set (3,183 comments):\\accuracy, precision, recall, F1, confusion matrix, speed};
 
     \draw[arrow] (raw) -- (clean);
     \draw[arrow] (clean) -- (split);
@@ -36,43 +36,110 @@ The study is an empirical, comparative experiment. All four approaches classify 
     \draw[arrow, dashed] (split.east) -- ++(1.4,0) |- node[pos=0.25, right, font=\footnotesize] {20\% test} (eval.east);
     \foreach \m in {lex,bb,xr,llm} \draw[arrow] (\m.south) -- (\m.south |- eval.north);
   \end{tikzpicture}}
-  \caption{Experimental pipeline. Only the two fine-tuned models use the training set. The lexicon filter and the LLM need no training. All four approaches are scored on the same held-out test set (dashed arrow).}
+  \caption{Experimental pipeline. The two fine-tuned models and the Bangla word list use the training set. The English word list and the LLM need no training. All approaches are scored on the same held-out test set (dashed arrow). The LLM classified 3,033 of the 3,183 test comments, so a comparison on exactly those comments is also reported (Chapter~4).}
   \label{fig:pipeline}
 \end{figure}
 
-\section{Dataset}
-
-The experiments use the \textbf{Multi-labeled Bengali Toxic Comments} dataset of Belal et al. \cite{belal2023toxic}, collected from Bangla social media. It contains 16,073 comments. Each comment carries six binary labels; Table~\ref{tab:rawlabels} shows how often each label occurs. A comment can carry several labels at once, and comments with no label are non-toxic.
+Four kinds of approach were chosen to cover the options a moderation team actually has. A word list is the cheapest option. Fine-tuning a pretrained transformer is the standard supervised method, and two models were chosen to test whether language-specific pretraining matters. A prompted LLM is the option that needs no labelled data. Table~\ref{tab:approaches} classifies them by whether they need training and where they run.
 
 \begin{table}[H]
   \centering
-  \caption{Occurrences of each toxicity label in the raw dataset (16,073 comments). A comment can carry more than one label.}
-  \label{tab:rawlabels}
-  \begin{tabular}{lrl}
+  \caption{The approaches compared in this thesis.}
+  \label{tab:approaches}
+  \small
+  \begin{tabular}{llll}
     \toprule
-    \textbf{Label} & \textbf{Comments} & \textbf{Description} \\
+    \textbf{Approach} & \textbf{Training needed} & \textbf{Runs} & \textbf{External service} \\
     \midrule
-    Insult    & 2,719 & Insulting or demeaning a person \\
-    Vulgar    & 2,505 & Obscene or sexually explicit language \\
-    Hate      & 1,898 & Hatred towards a person or group \\
-    Troll     & 1,643 & Mocking or provocative trolling \\
-    Threat    & 1,419 & Threats of violence or harm \\
-    Religious & 1,418 & Attacks on religion or religious groups \\
+    English word list (\texttt{better\_profanity}) & No & Locally & No \\
+    Bangla word list (learned from training data) & Yes, from word counts & Locally & No \\
+    BanglaBERT, fine-tuned & Yes, on GPU & Locally & No \\
+    XLM-RoBERTa, fine-tuned & Yes, on GPU & Locally & No \\
+    Qwen, zero-shot & No & Remote API & Yes (Groq) \\
     \bottomrule
   \end{tabular}
 \end{table}
 
+\section{Dataset}
+
+The experiments use the \textbf{Multi-labeled Bengali Toxic Comments} dataset of Belal et al. \cite{belal2023toxic}, which is publicly available at \url{https://github.com/deepu099cse/Multi-Labeled-Bengali-Toxic-Comments-Classification}. The authors did not collect the comments themselves. They assembled them from three earlier datasets (a Bangla abusive-comment dataset, a Bengali hate speech dataset and a Bangla online comments dataset) and re-annotated every comment, because the original labels were inconsistent. The paper does not state a collection period, and the repository declares no licence. The data is used here for research only, and the comments are quoted in the thesis only where an example is needed to explain an error.
+
+Each comment was labelled by two annotators, and a third resolved disagreements. Agreement was measured with Cohen's kappa. The average kappa for the toxic and non-toxic classes was 0.96, and the values for the six toxicity types are in Table~\ref{tab:rawlabels}. The dataset contains 16,073 comments, of which 8,488 are toxic and 7,585 are non-toxic. A comment can carry several of the six labels at once, and comments with no label are non-toxic.
+
+\begin{table}[H]
+  \centering
+  \caption{Occurrences of each toxicity label in the raw dataset (16,073 comments) and the annotator agreement reported by Belal et al. \cite{belal2023toxic}. A comment can carry more than one label.}
+  \label{tab:rawlabels}
+  \begin{tabular}{lrcl}
+    \toprule
+    \textbf{Label} & \textbf{Comments} & \textbf{Cohen's $\kappa$} & \textbf{Description} \\
+    \midrule
+    Insult    & 2,719 & 0.74 & Insulting or demeaning a person \\
+    Vulgar    & 2,505 & 0.88 & Obscene or sexually explicit language \\
+    Hate      & 1,898 & 0.79 & Hatred towards a person or group \\
+    Troll     & 1,643 & 0.66 & Mocking or provocative trolling \\
+    Threat    & 1,419 & 0.71 & Threats of violence or harm \\
+    Religious & 1,418 & 0.84 & Attacks on religion or religious groups \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The six categories are not equally common. Insults are almost twice as frequent as threats or religious attacks, and agreement is lowest for trolling and threats, which suggests these are the categories where annotators disagreed most. Both points matter for interpretation, because a model that works well overall may still be weaker on the rarer or more ambiguous categories.
+
+The six labels are merged into one binary label in this thesis. The merge matches the decision a moderation system usually has to make, which is whether to flag a comment, and it gives two reasonably balanced classes. The cost is that information about the type of toxicity is lost, so the thesis cannot say how well threats or religious hate are detected separately. This is stated again as a limitation in Chapter~5.
+
 \section{Preprocessing and Label Construction}
 
-The data was prepared with a small conversion script in the following steps:
+The data was prepared with a small conversion script in the following steps.
 
 \begin{enumerate}
-  \item \textbf{Binary labelling.} A comment is labelled \emph{toxic} (1) if \emph{any} of the six labels is set, and \emph{non-toxic} (0) otherwise. This turns the task into binary classification, which matches the typical moderation decision of whether to flag a comment.
+  \item \textbf{Binary labelling.} For comment $i$ with six binary labels $l_{i,1},\dots,l_{i,6}$, the binary label is
+  \begin{equation}
+    Y_i = \begin{cases} 1, & \text{if } \sum_{k=1}^{6} l_{i,k} \ge 1 \\ 0, & \text{otherwise,} \end{cases}
+  \end{equation}
+  so a comment is toxic if any of the six labels is set.
   \item \textbf{Cleaning.} Leading and trailing whitespace was removed, and empty comments were dropped.
-  \item \textbf{De-duplication.} Exact duplicate comments were removed, keeping the first occurrence. This prevents the same text from appearing in both the training and test sets, which would inflate the scores.
+  \item \textbf{De-duplication.} Exact duplicate comments were removed, keeping the first occurrence. This was done before the data was split, so the same text cannot appear in both the training and test sets, which would inflate the scores.
 \end{enumerate}
 
-No further normalisation, such as stemming or stop-word removal, was applied. The transformer models use their own subword tokenisers, which work best on raw text.
+Table~\ref{tab:prepcounts} shows how many comments each step removed.
+
+\begin{table}[H]
+  \centering
+  \caption{Number of comments after each preprocessing stage.}
+  \label{tab:prepcounts}
+  \begin{tabular}{lrrr}
+    \toprule
+    \textbf{Stage} & \textbf{Comments} & \textbf{Toxic} & \textbf{Non-toxic} \\
+    \midrule
+    Original dataset              & 16,073 & 8,488 & 7,585 \\
+    After removing empty comments & \todo{count} & & \\
+    After removing duplicates     & \todo{count} & & \\
+    \textbf{Final dataset}        & \textbf{15,913} & \textbf{8,459} & \textbf{7,454} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+In total 160 comments were removed, 29 toxic and 131 non-toxic. The split between empty comments and duplicates comes from the preprocessing script output (\texttt{data/prepare\_data.py}).
+
+No stemming, stop-word removal or other normalisation was applied. The transformer models use their own subword tokenisers, which are trained on raw text, and punctuation, repeated characters or emoji can carry meaning in a toxic comment. This differs from Belal et al., who removed punctuation, emoticons, hyperlinks and stop words. The comments are mostly Bangla script. A count of Latin letters, digits, emoji and URLs in the final dataset is given in Table~\ref{tab:scriptcontent}.
+
+\begin{table}[H]
+  \centering
+  \caption{Content of the final dataset: number of comments containing each kind of character.}
+  \label{tab:scriptcontent}
+  \begin{tabular}{lr}
+    \toprule
+    \textbf{Content} & \textbf{Comments} \\
+    \midrule
+    Bangla script (at least one Bangla letter) & \todo{count} \\
+    Latin letters (English words or Romanised Bangla) & \todo{count} \\
+    Digits & \todo{count} \\
+    Emoji & \todo{count} \\
+    URLs & \todo{count} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 After preprocessing, 15,913 comments remain: 8,459 toxic (53.2\%) and 7,454 non-toxic (46.8\%), so the two classes are reasonably balanced (Figure~\ref{fig:classdist}). Comments are short. They contain 14.3 words (80 characters) on average, the median is 11 words, and the longest comment has 238 words. Figure~\ref{fig:lengths} shows that toxic and non-toxic comments have very similar length distributions, so comment length alone gives little clue to the label.
 
@@ -92,36 +159,60 @@ After preprocessing, 15,913 comments remain: 8,459 toxic (53.2\%) and 7,454 non-
 
 \section{Data Splitting}
 
-The data was split once with a fixed random seed (42) and stratification by label, so each subset keeps the overall class ratio:
+The data was split once with a fixed random seed (42) and stratification by label, so each subset keeps the overall class ratio. Every notebook uses the same seed and the same split, so every approach sees the same test comments.
 
 \begin{itemize}
   \item \textbf{Training set:} 12,730 comments (80\%), of which 6,767 are toxic.
   \item \textbf{Test set:} 3,183 comments (20\%), of which 1,692 are toxic and 1,491 non-toxic.
 \end{itemize}
 
-For the fine-tuned models, 10\% of the training set (1,273 comments) was further held out as a stratified \textbf{validation set}, leaving 11,457 comments for gradient updates. The validation set is used for early stopping and for choosing the best checkpoint. The test set is used \emph{only} once, to compute the final scores. This avoids a common source of over-optimistic results, where the test set is also used to choose the model. All four approaches are evaluated on the same 3,183 test comments.
+For the fine-tuned models, 10\% of the training set (1,273 comments) was further held out as a stratified \textbf{validation set}, leaving 11,457 comments for gradient updates. Table~\ref{tab:splits} gives the class counts of every subset. The validation set is used for early stopping and for choosing the best checkpoint, and for the cut-offs of the Bangla word list. The test set was used only to compute the final scores and was never used to select a checkpoint, a hyperparameter or a word-list setting.
+
+\begin{table}[H]
+  \centering
+  \caption{Class distribution of the data subsets.}
+  \label{tab:splits}
+  \begin{tabular}{lrrr}
+    \toprule
+    \textbf{Subset} & \textbf{Comments} & \textbf{Toxic} & \textbf{Non-toxic} \\
+    \midrule
+    Fit (gradient updates) & 11,457 & \todo{count} & \todo{count} \\
+    Validation             & 1,273  & \todo{count} & \todo{count} \\
+    Training total         & 12,730 & 6,767 & 5,963 \\
+    Test                   & 3,183  & 1,692 & 1,491 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Removing exact duplicates does not remove \emph{near}-duplicates, that is, comments that differ by a character or a word, or several comments written by the same user or copied from the same thread. If such comments fall on both sides of the split, the test scores will be somewhat optimistic. The dataset does not record the source of each comment, so this could not be checked, and it is listed as a limitation.
 
 \section{Detection Approaches}
 
-\subsection{Lexicon Baseline}
+\subsection{Word-list Baselines}
 
-The first baseline is \texttt{better\_profanity} \cite{betterprofanity}, a widely used Python library that flags text containing any word from its built-in profanity list, including common obfuscated spellings. It needs no training. Its list is in English, so it represents the common practice of applying an off-the-shelf filter to a new language without adapting it.
+The first baseline is \texttt{better\_profanity} \cite{betterprofanity}, a Python library that flags text containing any word from its built-in profanity list, including common obfuscated spellings. It needs no training. Its list is in English, so this baseline represents the practice of applying an off-the-shelf filter to a new language without adapting it. It is a language-mismatched baseline. Its result says how an English filter behaves on Bangla, not how word lists behave in general.
+
+A fairer word-list baseline was therefore added. The Bangla word list is built from the fit split only. Each comment is split into words, and a word enters the list if it appears in at least $m$ comments and at least a share $r$ of those comments are toxic. A test comment is flagged if it contains any listed word. The two cut-offs, $m$ and $r$, are chosen by a small grid search on the validation split, so the test set plays no part in building the list. This is a simple data-driven list, not a hand-curated Bangla lexicon.
 
 \subsection{BanglaBERT}
 
-BanglaBERT (\texttt{sagorsarker/bangla-bert-base}) \cite{sarker2020banglabert} uses the BERT-base architecture (12 layers, hidden size 768) and was pretrained with masked language modelling on Bangla text only. A linear classification layer is added on top of the \texttt{[CLS]} token representation, and the whole network is fine-tuned on the training data.
+BanglaBERT (\texttt{sagorsarker/bangla-bert-base}) \cite{sarker2020banglabert} uses the BERT-base architecture (12 layers, hidden size 768) and was pretrained with masked language modelling on Bangla text only. Comments are tokenised with the WordPiece tokeniser of this checkpoint. For classification, a dropout layer and a linear layer are added on top of the pooled \texttt{[CLS]} representation, and the whole network is fine-tuned on the training data. Sequences are truncated to 256 tokens and padded, and the predicted class is the one with the larger logit.
 
 \subsection{XLM-RoBERTa}
 
-XLM-RoBERTa (\texttt{xlm-roberta-base}) \cite{conneau2020xlmr} is a multilingual RoBERTa model (12 layers, hidden size 768, about 270 million parameters, most of them in its large 250,000-token vocabulary) pretrained on 2.5 TB of web text in 100 languages. It is fine-tuned in the same way and with the same hyperparameters as BanglaBERT, so the comparison isolates the effect of the pretrained model.
+XLM-RoBERTa (\texttt{xlm-roberta-base}) \cite{conneau2020xlmr} is a multilingual RoBERTa model (12 layers, hidden size 768, about 270 million parameters, most of them in its large 250,000-token vocabulary) pretrained on 2.5 TB of web text in 100 languages. Comments are tokenised with its SentencePiece tokeniser. A classification head on the first token produces the two logits, and the larger one gives the class. It is fine-tuned with the same hyperparameters as BanglaBERT to keep the experimental setup consistent. The two models also differ in architecture details, vocabulary, tokeniser and pretraining data, so the comparison is between two complete pretrained configurations and not only between their pretraining languages. This has to be kept in mind when the performance gap is interpreted.
 
 \subsection{Zero-shot Large Language Model}
 
-The LLM baseline uses Qwen (\texttt{qwen/qwen3.8-27b}) \cite{yang2025qwen3}, an open-weight model accessed through the Groq inference API \cite{groqdocs}. The model receives no training examples. Comments are sent in batches of 25, with a fixed instruction asking for one label per comment. Decoding is deterministic (temperature 0), and the model's step-by-step reasoning mode is turned off, so that it returns only the list of labels. A reply is accepted only if it contains exactly one valid label for every comment in the batch; otherwise the batch is retried up to three times.
+The LLM baseline uses Qwen (\texttt{qwen/qwen3.8-27b}), an open-weight model accessed through the Groq inference API \cite{groqmodels}. The identifier was checked against the list of available models on the Groq site and is also checked in the notebook before every run. The model receives no training examples. The instruction is written in English and the comments are in Bangla. The full prompt is given in Appendix~\ref{app:prompt}. In short, comments are sent in batches of 25, and the instruction asks for one numbered label (\texttt{toxic} or \texttt{non-toxic}) per comment.
+
+The API settings were: temperature 0, a maximum of 512 output tokens, and the model's step-by-step reasoning mode turned off so that only the list of labels is returned. A reply is accepted only if it contains exactly one valid label for every comment in the batch. Otherwise the batch is retried up to three times, with a pause that grows after each failed attempt. A batch that still fails is left unclassified and is excluded from the LLM scores, not counted as an error. The experiments were run \todo{dates from the run logs}.
+
+The prompt does not say how to treat mixed Bangla--English comments, ambiguous comments, sarcasm or comments with several toxicity types. The model has to decide on its own, and it returns a single label for each comment. This is a deliberate part of the zero-shot setting, and it also means the result depends on this one prompt. Only one prompt and one model were tested.
 
 \section{Training Configuration}
 
-Both transformer models were fine-tuned with the Hugging Face Transformers library \cite{wolf2020transformers} using the settings in Table~\ref{tab:hyper}. They are standard values recommended for fine-tuning BERT-style models \cite{devlin2019bert} and were not tuned further, so that both models are compared under identical conditions.
+Both transformer models were fine-tuned with the Hugging Face Transformers library \cite{wolf2020transformers} using the settings in Table~\ref{tab:hyper}. They are standard values for fine-tuning BERT-style models \cite{devlin2019bert} and were not tuned further, so that both models are compared under identical conditions. The maximum length of 256 tokens is well above the length of almost every comment (the longest has 238 words), so little text is cut off.
 
 \begin{table}[H]
   \centering
@@ -133,16 +224,18 @@ Both transformer models were fine-tuned with the Hugging Face Transformers libra
     \midrule
     Maximum sequence length & 256 tokens \\
     Batch size & 16 \\
-    Optimiser & AdamW \\
+    Optimiser & AdamW (library defaults for $\beta_1$, $\beta_2$ and $\epsilon$) \\
     Learning rate & $2\times10^{-5}$, linear decay \\
     Warm-up & 10\% of training steps \\
     Weight decay & 0.01 \\
+    Dropout (classification head) & 0.1 (model default) \\
     Maximum epochs & 5 \\
     Early stopping & patience of 2 epochs on validation F1 \\
     Checkpoint selection & best validation F1 (weighted) \\
     Precision & mixed (FP16) \\
     Random seeds & 43, 44, 45 (one per run) \\
     Hardware & NVIDIA T4 GPU (16 GB), Google Colab \\
+    Software & \todo{Python, PyTorch and Transformers versions from Colab} \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -151,20 +244,30 @@ Both transformer models were fine-tuned with the Hugging Face Transformers libra
 
 \subsection{Metrics}
 
-Predictions are compared with the true labels using accuracy, precision, recall and F1-score. Precision, recall and F1 are averaged over the two classes, with each class weighted by its number of test comments (weighted average). The weighted F1-score is the main metric. Per-class scores, the confusion matrix and the number of false positives (non-toxic comments wrongly flagged) and false negatives (toxic comments missed) are also reported, because the two error types have different costs in moderation.
+Predictions are compared with the true labels using accuracy, precision, recall and F1-score. With TP, FP, TN and FN the numbers of true positives, false positives, true negatives and false negatives for the toxic class,
+\begin{equation}
+  \text{Precision} = \frac{TP}{TP+FP}, \qquad
+  \text{Recall} = \frac{TP}{TP+FN}, \qquad
+  F_1 = 2\times\frac{\text{Precision}\times\text{Recall}}{\text{Precision}+\text{Recall}}.
+\end{equation}
+Computed for one class at a time, these are the \emph{per-class} scores. The \emph{weighted} scores average the two per-class values, each weighted by the number of test comments in that class. Weighted F1 is the main metric because the two classes are of similar size and it summarises performance on both with one number. It is not the same as the F1-score of the toxic class, which is reported separately because the toxic class is the one a moderation system cares most about. The two should not be mixed up when numbers are compared. The confusion matrix and the numbers of false positives (non-toxic comments wrongly flagged) and false negatives (toxic comments missed) are also reported, because the two error types have different costs in moderation.
 
 \subsection{Repeated Runs}
 
-Fine-tuning results vary with the random seed, which controls classifier initialisation and the order of the training data. Each transformer model was therefore trained three times with different seeds, keeping the data splits fixed, and the mean and standard deviation over the three runs are reported. The model from the first run is used for the detailed analysis, such as the confusion matrices, and for the demo.
+Fine-tuning results vary with the random seed, which controls classifier initialisation and the order of the training data. Each transformer model was therefore trained three times with different seeds, keeping the data splits fixed. The mean and standard deviation over the three runs are reported. The standard deviation is the population standard deviation (divisor $n=3$), as computed by NumPy's default. The model from the first run is used for the detailed analysis, such as the confusion matrices and error examples, and for the demo.
+
+Three runs give only a rough estimate of variability. To describe the uncertainty from the finite test set as well, 95\% confidence intervals for the first run were computed by bootstrapping the test comments (2,000 resamples), and a paired exact McNemar test was applied to the first-run predictions of the two models on the same test comments. No claim of statistical significance is based on the three seeds alone.
 
 \subsection{Learning Curve}
 
-To answer RQ5, each transformer model was also trained on the first 25\%, 50\% and 100\% of the (shuffled) training set and evaluated on the full test set.
+To answer RQ5, each transformer model was also trained on the first 25\%, 50\% and 100\% of the training set and evaluated on the full test set. The training set had been shuffled by the stratified split, so these prefixes are random subsets, but the subsets were not stratified separately, and each size was trained once, with seed 42, and not averaged over several runs. Inside each subset 10\% was held out for validation, as in the main runs. The exact class counts of the subsets are in Table~\ref{tab:lc}. The same test set is used for every training size, so the curve inherits the small dependence on that one test set that any repeated evaluation has, even though the test set was never used for selection.
 
 \subsection{Inference Speed}
 
-Speed is reported as the number of test comments classified per second. For the fine-tuned models, this is measured on the Colab T4 GPU. For the LLM, it includes network round-trips and the pauses required by the free-tier rate limits, so it reflects the practical throughput of this setup rather than the raw speed of the model.
+Speed is reported as the number of test comments classified per second. For the fine-tuned models it is measured on the Colab T4 GPU with a batch size of 32, after a warm-up pass, as the mean of three timed passes over the full test set. The time includes tokenisation and the transfer of each batch to the GPU. For the LLM, the time is end-to-end: it includes the network round-trip, the model's processing on the provider's hardware, and the pauses needed to respect the free-tier rate limits. The two numbers therefore describe the practical throughput of two different execution setups, a local GPU and a remote free-tier API. They are not a measure of the intrinsic speed of the models themselves.
 
 \section{Implementation}
 
-The pipeline is implemented in Python using PyTorch, Hugging Face Transformers \cite{wolf2020transformers} and scikit-learn \cite{pedregosa2011sklearn}. It is organised as six Jupyter notebooks (data exploration, the lexicon baseline, BanglaBERT, XLM-RoBERTa, the LLM baseline, and evaluation), backed by a tested Python package and a command-line entry point. All experiments ran on the free tier of Google Colab. Results are stored on Google Drive, and finished runs are detected and skipped automatically, so an interrupted session can resume without repeating work. A web demo built with Gradio lets a user type a Bangla comment and see the predicted label and confidence.
+The pipeline is implemented in Python using PyTorch, Hugging Face Transformers \cite{wolf2020transformers} and scikit-learn \cite{pedregosa2011sklearn}. It is organised as seven Jupyter notebooks (data exploration, the English word list, BanglaBERT, XLM-RoBERTa, the LLM baseline, evaluation, and the supplementary analysis), backed by a tested Python package and a command-line entry point. All experiments ran on the free tier of Google Colab. Results are stored on Google Drive, and finished runs are detected and skipped automatically, so an interrupted session can resume without repeating work. A web demo built with Gradio lets a user type a Bangla comment and see the predicted label and confidence.
+
+The code, the notebooks and instructions for reproducing the experiments are public at \url{https://github.com/mehediparvez/bangla_profanity_word_detection}, and the README links to the saved model checkpoints. The dataset has to be downloaded from its own repository and converted with \texttt{data/prepare\_data.py}.

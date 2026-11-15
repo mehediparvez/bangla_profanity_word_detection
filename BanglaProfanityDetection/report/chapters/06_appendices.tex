@@ -1,0 +1,57 @@
+\chapter{LLM Prompt and API Configuration}
+\label{app:prompt}
+\justifying
+
+This appendix gives the exact prompt and settings of the zero-shot LLM experiment (Section~3.5.4). They are taken from \texttt{src/llm\_baseline.py} and \texttt{configs/config.yaml} in the public repository.
+
+\section*{Prompt}
+
+One request is sent for each batch of 25 comments. The instruction is in English, the comments are in Bangla, and there are no examples. Each \texttt{<comment>} stands for one test comment.
+
+\begin{verbatim}
+Classify each Bangla comment as 'toxic' or 'non-toxic'. Reply with
+ONLY a numbered list like:
+1. toxic
+2. non-toxic
+...
+
+Comments:
+1. <comment 1>
+2. <comment 2>
+...
+25. <comment 25>
+\end{verbatim}
+
+\section*{API settings}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+    \textbf{Setting} & \textbf{Value} \\
+    \midrule
+    Provider and endpoint & Groq chat completions API \\
+    Model identifier & \texttt{qwen/qwen3.8-27b} \\
+    Temperature & 0 \\
+    Maximum output tokens & 512 \\
+    Reasoning mode & off (\texttt{reasoning\_effort} set to \texttt{none}) \\
+    Comments per request & 25 \\
+    Pause between requests & 2 seconds \\
+    Attempts per batch & 3, with a pause that grows after each failure \\
+    Reply accepted if & exactly one valid label for each comment \\
+    Failed batch & left unclassified and excluded from scoring \\
+    Run dates & \todo{from the run logs} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\chapter{Data Availability and Ethics}
+\justifying
+
+\textbf{Data.} The dataset of Belal et al. \cite{belal2023toxic} is public at \url{https://github.com/deepu099cse/Multi-Labeled-Bengali-Toxic-Comments-Classification}. The repository declares no licence, so the data was used for research only and is not redistributed with this thesis. The comments were assembled from three earlier datasets. The thesis quotes individual comments only to explain errors, and any names, handles or links in them are removed before quoting.
+
+\textbf{Harmful content.} The dataset contains vulgar, hateful and threatening language. These comments are used only to train and evaluate detection systems. Readers should be aware that some quoted examples are offensive.
+
+\textbf{Code and models.} The code, the notebooks and the instructions to repeat the experiments are public at \url{https://github.com/mehediparvez/bangla_profanity_word_detection}, and the README links to the saved model checkpoints. The LLM experiment needs a Groq API key, which is not part of the repository.
+
+\textbf{Use of the system.} The models were trained on one dataset and make mistakes, as the error analysis shows. They are not meant to remove comments or sanction users without human review.
