@@ -69,9 +69,16 @@ def main():
 
     df = pd.concat(frames, ignore_index=True)
     out = pd.DataFrame({"text": df[args.text_col].astype(str).str.strip(), "label": to_binary(df, args)})
+    n_raw = len(out)
     out = out[out["text"].str.len() > 0].dropna()
+    n_non_empty = len(out)
     out["label"] = out["label"].astype(int)
     out = out.drop_duplicates(subset="text")
+
+    # Record counts per cleaning stage (reported in the thesis, Chapter 3)
+    print(f"Raw rows: {n_raw}")
+    print(f"After removing empty comments: {n_non_empty} ({n_raw - n_non_empty} removed)")
+    print(f"After removing exact duplicates: {len(out)} ({n_non_empty - len(out)} removed)")
 
     out.to_csv(args.output, index=False, encoding="utf-8")
     counts = out["label"].value_counts().to_dict()
