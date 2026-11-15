@@ -139,13 +139,13 @@ Date: \makebox[3.5cm]{\dotfill} & Date: \makebox[3.5cm]{\dotfill} \\
 \addcontentsline{toc}{chapter}{Abstract}
 \justifying
 
-Toxic and abusive comments are widespread on Bangla social media, yet most moderation tools are built for English. This thesis compares ways of detecting toxic Bangla comments automatically: word-list (lexicon) filters, two fine-tuned transformer models (the Bangla-specific BanglaBERT and the multilingual XLM-RoBERTa), and a large language model (LLM) used zero-shot, without any task-specific training.
+Toxic and abusive comments are widespread on Bangla social media, yet most moderation tools are built for English. This thesis compares word-list (lexicon) filters, two fine-tuned transformers (the Bangla-specific BanglaBERT and the multilingual XLM-RoBERTa) and a zero-shot large language model (LLM) for detecting toxic Bangla comments.
 
-The study uses the Multi-labeled Bengali Toxic Comments dataset. Its six toxicity labels (vulgar, hate, religious, threat, troll and insult) are converted into one binary toxic or non-toxic label, giving 15,913 comments after cleaning, of which 53.2\% are toxic. The approaches are scored on one stratified test set of 3,183 comments. The LLM classified only 3,033 of these before the free API limit was reached, so the comparison is also made on those 3,033 comments. Model selection uses a separate validation split, so the test set is used only for final scores. Each fine-tuned model is trained three times with different random seeds, and a learning curve measures how much labelled data the models need.
+The study uses the Multi-labeled Bengali Toxic Comments dataset. Its six toxicity labels are converted into one binary label, giving 15,913 comments after cleaning, of which 53.2\% are toxic. All approaches are scored on the same stratified test set of 3,183 comments, model selection uses a separate validation split, and each fine-tuned model is trained with three random seeds.
 
-On the full test set, XLM-RoBERTa achieves the best weighted F1-score, 0.943 $\pm$ 0.001, ahead of BanglaBERT at 0.928 $\pm$ 0.003, and it stays ahead at every amount of training data. The zero-shot LLM (Qwen, accessed through the Groq API) reaches a weighted F1-score of 0.768 on the comments it classified. It is highly precise when it flags a comment as toxic (precision 0.97) but misses 41\% of toxic comments, and in the tested free-tier setup it classifies about 70 times fewer comments per second than the fine-tuned models. An English word-list filter fails almost completely (weighted F1 0.299) because it does not recognise Bangla words. A Bangla word list learned from the training data does much better (weighted F1 0.860), but it partly learns topic words and stays well below the fine-tuned models.
+XLM-RoBERTa performs best, with a weighted F1-score of 0.943 $\pm$ 0.001, ahead of BanglaBERT at 0.928 $\pm$ 0.003, and it stays ahead at every amount of training data. The zero-shot LLM (Qwen, through the Groq API) reaches 0.771. It is precise when it flags a comment (0.97) but misses 40\% of toxic comments, and in the tested free-tier setup it is about 65 times slower. An English word list fails almost completely (F1 0.299). A Bangla word list learned from the training data reaches 0.860 but partly learns topic words.
 
-Under these conditions, fine-tuning a pretrained transformer on a modest amount of labelled Bangla data clearly outperforms word lists and zero-shot prompting of one general-purpose LLM, and it is cheaper to run. In this experiment a multilingual model outperformed a Bangla-specific one, but the comparison covers only these two checkpoints and one dataset, and does not show that multilingual models are better in general. The code and notebooks are public, and the thesis includes a web demo.
+Under these conditions, fine-tuning a pretrained transformer on a modest amount of labelled Bangla data clearly outperforms word lists and zero-shot prompting of one LLM, at lower cost. A multilingual model beat a Bangla-specific one here, but only for these two checkpoints on one dataset. The code and notebooks are public.
 
 \textbf{Keywords:} Bangla, toxic comment detection, hate speech, BanglaBERT, XLM-RoBERTa, large language models, zero-shot classification, low-resource NLP.
 
@@ -172,9 +172,12 @@ Finally, I thank my family and friends for their support and patience throughout
 % ===========================================================================
 \newpage
 \renewcommand*\contentsname{Table of Contents}
+\setcounter{tocdepth}{1}
 \tableofcontents
+\begingroup\let\clearpage\relax
 \listoffigures
 \listoftables
+\endgroup
 
 \chapter*{List of Abbreviations}
 \addcontentsline{toc}{chapter}{List of Abbreviations}
@@ -211,8 +214,10 @@ XLM-R   & XLM-RoBERTa (Cross-lingual Language Model, RoBERTa architecture) \\
 \clearpage
 \phantomsection
 \addcontentsline{toc}{chapter}{References}
+\begingroup\linespread{1.15}\selectfont
 \bibliographystyle{unsrtnat}
 \bibliography{ref}
+\endgroup
 
 % ===========================================================================
 % Appendices

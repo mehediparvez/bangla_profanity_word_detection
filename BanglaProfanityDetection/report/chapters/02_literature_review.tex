@@ -1,24 +1,22 @@
 \chapter{Literature Review}
 \justifying
 
-This chapter reviews the work this thesis builds on: automatic detection of toxic and hateful text in general, work specific to Bangla, pretrained transformer language models, and the use of large language models for classification. It ends with the research gap.
+This chapter reviews work on toxic and hateful text detection in general and in Bangla, pretrained transformers, and LLM-based classification, and then states the research gap.
 
 \section{Toxic and Hate Speech Detection}
 
-Automatic detection of abusive language has been studied extensively for English. The surveys by Schmidt and Wiegand \cite{schmidt2017survey} and Fortuna and Nunes \cite{fortuna2018survey} describe the usual progression. Early systems used hand-crafted features such as word lists, n-grams and sentiment scores, and fed them to classical classifiers. Naive Bayes, logistic regression and support vector machines (SVM) were the common choices. They are fast, need little data and are easy to inspect, but they depend on the features chosen by the designer and see a comment as a bag of words.
+Surveys by Schmidt and Wiegand \cite{schmidt2017survey} and Fortuna and Nunes \cite{fortuna2018survey} describe the usual progression for English. Early systems used hand-made features such as word lists, n-grams and sentiment scores with classical classifiers (Naive Bayes, logistic regression, support vector machines). They are fast and easy to inspect but see a comment as a bag of words. A word list flags a comment if it contains a listed word. Davidson et al. \cite{davidson2017automated} showed why this is weak: offensive words appear in harmless contexts, and hateful messages can avoid explicit slurs.
 
-Word lists are the simplest case. A comment is flagged if it contains a listed word. Davidson et al. \cite{davidson2017automated} showed why this is weak: offensive words appear in harmless contexts, and hateful messages can avoid explicit slurs. Their results also showed that separating hate speech from merely offensive language is difficult for classifiers built on surface features.
-
-Deep learning replaced hand-made features with learned ones. Convolutional networks (CNN) pick up short phrases that signal abuse, and recurrent networks such as LSTM and BiLSTM read the comment word by word and keep a memory of what came before. Both usually start from word embeddings such as Word2Vec or FastText. A word embedding gives each word one fixed vector, so a word has the same representation in a joke and in an insult. Transformer models \cite{vaswani2017attention} address this by building the representation of each word from the whole sentence. Pretrained transformers such as BERT \cite{devlin2019bert} and RoBERTa \cite{liu2019roberta}, fine-tuned on labelled comments, are now the standard strong approach. They need more compute than the earlier methods, and they still depend on having labelled data in the target language. These trade-offs motivate the comparison made in this thesis.
+Deep learning replaced hand-made features with learned ones. Convolutional networks (CNN) pick up short phrases, and recurrent networks (LSTM, BiLSTM) read a comment word by word, usually from word embeddings such as Word2Vec or FastText that give a word one fixed vector whatever the context. Transformers \cite{vaswani2017attention} build each word's representation from the whole sentence, and pretrained models such as BERT \cite{devlin2019bert} and RoBERTa \cite{liu2019roberta}, fine-tuned on labelled comments, are now the standard strong approach. They need more compute and still depend on labelled data in the target language, which motivates the comparison made here.
 
 \section{Toxic and Hate Speech Detection in Bangla}
 
-Bangla has received growing attention in recent years. Table~\ref{tab:litreview} lists the studies most relevant to this thesis. The figures in the table are taken from the original papers.
+Table~\ref{tab:litreview} lists the studies most relevant to this thesis. The figures are taken from the original papers.
 
 \begingroup
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\renewcommand{\arraystretch}{1.25}
+\renewcommand{\arraystretch}{1.2}
 \begin{longtable}{>{\raggedright\arraybackslash}p{2.1cm} >{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}p{2.9cm} >{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}p{3.0cm}}
   \caption{Studies related to Bangla toxic and hate speech detection.}\label{tab:litreview}\\
   \toprule
@@ -35,95 +33,68 @@ Bangla has received growing attention in recent years. Table~\ref{tab:litreview}
   \bottomrule
   \endlastfoot
     Ishmam and Sharmin (2019) \cite{ishmam2019hateful}
-      & Classical machine learning and recurrent neural networks
-      & Comments from public Facebook pages
+      & Classical machine learning and recurrent networks
+      & Public Facebook page comments
       & \todo{read the reported results in the IEEE paper}
       & Predates pretrained transformers. \\
-    \addlinespace
     Romim et al. (2021) \cite{romim2021hate}
-      & Word2Vec, FastText and BengFastText embeddings with deep learning models and SVM
-      & 30,000 YouTube and Facebook comments in seven topic categories
+      & Word embeddings with deep learning models and SVM
+      & 30,000 YouTube and Facebook comments
       & SVM best, 87.5\% accuracy
-      & No pretrained transformers; hate speech rather than toxicity types. \\
-    \addlinespace
-    Das et al. (2021) \cite{das2021bangla}
-      & Attention-based recurrent encoder-decoder
-      & 7,425 Facebook comments, seven hate categories
-      & 77\% accuracy
-      & Small dataset; no pretrained transformers. \\
-    \addlinespace
+      & No pretrained transformers. \\
     Karim et al. (2021) \cite{karim2021deephateexplainer}
-      & Ensemble of BanglaBERT-base, multilingual BERT and XLM-RoBERTa, with explanations
-      & Bangla hate speech in four types: political, personal, geopolitical, religious
-      & F1 of 78\%, 91\%, 89\% and 84\% for the four types
+      & Ensemble of BanglaBERT-base, mBERT and XLM-RoBERTa, with explanations
+      & Bangla hate speech in four types
+      & F1 of 78, 91, 89 and 84\% for the four types
       & Models are combined, so single models are not compared; no LLMs. \\
-    \addlinespace
-    Bhattacharjee et al. (2022) \cite{bhattacharjee2022banglabert}
-      & BanglaBERT (ELECTRA objective) pretrained on 27.5 GB of Bangla text
-      & Four Bangla understanding tasks (benchmark BLUB)
-      & State-of-the-art on the benchmark, ahead of multilingual and monolingual models
-      & General language understanding, not toxicity. \\
-    \addlinespace
     Romim et al. (2022) \cite{romim2022bdshs}
-      & Several NLP models with embeddings trained on 1.47 million social media comments
-      & BD-SHS, more than 50,200 comments, hierarchical annotation
-      & Best F1 of 91.0\%
-      & Hate speech labels; embedding-based models; no LLMs. \\
-    \addlinespace
+      & Several models with embeddings trained on 1.47 million comments
+      & BD-SHS, over 50,200 comments
+      & Best F1 91.0\%
+      & Hate speech labels; no LLMs. \\
     Belal et al. (2023) \cite{belal2023toxic}
-      & Two stages: LSTM on Bangla BERT embeddings (toxic or not), then CNN-BiLSTM with attention (six types)
+      & LSTM on Bangla BERT embeddings (binary), CNN-BiLSTM with attention (six types)
       & 16,073 comments, six toxicity types
-      & Binary accuracy 89.42\% (88.57\% for fine-tuned Bangla BERT); six-type accuracy 78.92\%, weighted F1 0.86
-      & One data split, no repeated runs; no multilingual transformer and no LLM. \\
-    \addlinespace
+      & Binary accuracy 89.42\% (fine-tuned Bangla BERT 88.57\%); six types 78.92\%, F1 0.86
+      & One split, no repeated runs; no multilingual transformer, no LLM. \\
     Hasan et al. (2025) \cite{hasan2025banglamultihate}
-      & Classical models, monolingual pretrained models and LLMs (zero-shot and LoRA fine-tuned)
-      & BanglaMultiHate, a multi-task hate speech dataset
+      & Classical models, monolingual pretrained models, LLMs (zero-shot, LoRA)
+      & BanglaMultiHate, multi-task hate speech
       & LoRA-tuned LLMs competitive with BanglaBERT
-      & Hate speech type, severity and target rather than binary toxicity. \\
+      & Hate type, severity and target, not binary toxicity. \\
     \midrule
     This thesis
       & Word lists, BanglaBERT, XLM-RoBERTa, zero-shot Qwen
       & Belal et al. dataset, binary labels
       & XLM-RoBERTa best, weighted F1 0.943
-      & One dataset; binary labels; one LLM and one prompt. \\
+      & One dataset; binary labels; one LLM and prompt. \\
 \end{longtable}
 \endgroup
 
-Ishmam and Sharmin \cite{ishmam2019hateful} collected comments from public Facebook pages and classified hateful speech using machine learning and recurrent neural networks. Romim et al. \cite{romim2021hate} released a dataset of 30,000 comments from YouTube and Facebook, annotated by crowd workers and checked by experts. Their baselines used word embeddings with deep learning models, and an SVM gave the best accuracy. The same group later published BD-SHS \cite{romim2022bdshs}, a larger set of more than 50,000 comments with hierarchical labels that record the social context of the hate. Das et al. \cite{das2021bangla} used attention-based recurrent models on a smaller set of 7,425 comments. Karim et al. \cite{karim2021deephateexplainer} applied transformers to Bangla hate speech, combining BanglaBERT-base, multilingual BERT and XLM-RoBERTa in an ensemble and adding explanations of the model decisions.
-
-Belal et al. \cite{belal2023toxic} introduced the Multi-labeled Bengali Toxic Comments dataset used in this thesis. They used a two-stage approach that first decides whether a comment is toxic and then identifies the toxicity types. Their best binary model reached 89.42\% accuracy, and a fine-tuned Bangla BERT reached 88.57\%. They used one train, validation and test split and report no repeated runs.
-
-Two things stand out in this body of work. First, most studies treat hate speech or abuse, and the label definitions differ, so numbers from different papers cannot be compared directly. Second, the older studies use word embeddings or recurrent networks, and the transformer studies on the Belal et al. dataset fine-tune only a Bangla BERT.
+Ishmam and Sharmin \cite{ishmam2019hateful} classified hateful comments from public Facebook pages. Romim et al. \cite{romim2021hate} released 30,000 annotated YouTube and Facebook comments, and the same group later published BD-SHS \cite{romim2022bdshs} with hierarchical labels. Karim et al. \cite{karim2021deephateexplainer} applied transformers to Bangla hate speech in an ensemble. Belal et al. \cite{belal2023toxic} introduced the dataset used here, with a two-stage approach, and used one train, validation and test split with no repeated runs. Most of these studies treat hate speech or abuse with differing label definitions, so their numbers cannot be compared directly. The older ones use embeddings or recurrent networks, and the transformer studies on the Belal et al. dataset fine-tune only a Bangla BERT.
 
 \section{Pretrained Transformer Language Models}
 
-The transformer architecture \cite{vaswani2017attention} replaced recurrence with self-attention, which lets every word in a sentence look at every other word. BERT \cite{devlin2019bert} pretrains a transformer encoder with \emph{masked language modelling} (MLM): some words are hidden, and the model learns to predict them from the rest of the sentence. After pretraining on unlabelled text, the model is fine-tuned on a labelled task by adding a small classification layer. RoBERTa \cite{liu2019roberta} improved the pretraining recipe with more data and longer training.
+BERT \cite{devlin2019bert} pretrains a transformer encoder with \emph{masked language modelling} (MLM): some words are hidden and the model learns to predict them from the rest of the sentence. It is then fine-tuned on a labelled task with a small classification layer. RoBERTa \cite{liu2019roberta} improved the recipe with more data and longer training. A monolingual model sees only its own language, so its vocabulary fits that language well but the text is limited. A multilingual model such as XLM-RoBERTa \cite{conneau2020xlmr} is trained on 2.5 TB of web text in 100 languages including Bangla, with a large shared vocabulary and strong results for low-resource languages. It may have seen more informal, varied text than a Wikipedia-based Bangla model, but whether this helps on social media toxicity is an empirical question.
 
-A model can be pretrained on one language or on many. A monolingual model sees only text in its language, so its vocabulary fits that language well, but the amount of text is limited. A multilingual model such as XLM-RoBERTa \cite{conneau2020xlmr} is trained on 2.5 TB of filtered web text in 100 languages, including Bangla. It has far more text and a large shared vocabulary, and it showed strong cross-lingual results, notably for low-resource languages. Bangla is a small part of that corpus, but the model may still have seen more informal, varied text than a Wikipedia-based Bangla model. Whether this helps on social media toxicity is an empirical question.
-
-Two different Bangla models share the name BanglaBERT, and the thesis uses only one of them. Sarker \cite{sarker2020banglabert} released a BERT-base model (\texttt{sagorsarker/bangla-bert-base}) pretrained with MLM on Bangla Wikipedia and the Bangla part of OSCAR. This is the model used here. Bhattacharjee et al. \cite{bhattacharjee2022banglabert} later released a separate model (\texttt{csebuetnlp/banglabert}) pretrained with the ELECTRA objective on a larger Bangla corpus, together with a benchmark of Bangla understanding tasks. The two have different architectures and training data, and results for one do not carry over to the other.
+Two different Bangla models share the name BanglaBERT. Sarker \cite{sarker2020banglabert} released a BERT-base model (\texttt{sagorsarker/bangla-bert-base}), pretrained with MLM on Bangla Wikipedia and the Bangla part of OSCAR, which is the model used here. Bhattacharjee et al. \cite{bhattacharjee2022banglabert} released a separate model (\texttt{csebuetnlp/banglabert}) pretrained with the ELECTRA objective on a larger corpus, together with a benchmark of Bangla understanding tasks. Results for one do not carry over to the other.
 
 \section{Large Language Models for Classification}
 
-Large language models can carry out many tasks from a natural-language instruction alone. In \emph{zero-shot} classification the prompt contains only the instruction and the text to classify. In \emph{few-shot} classification it also contains a few labelled examples \cite{brown2020gpt3}. This prompt-based approach needs no labelled training data and no GPU training, which is attractive for low-resource languages where labelled data is scarce.
+In \emph{zero-shot} classification the prompt holds only the instruction and the text to classify, and in \emph{few-shot} classification it also holds a few labelled examples \cite{brown2020gpt3}. This needs no labelled data and no training, which suits low-resource languages. The drawbacks are that most LLMs are trained mainly on English, results depend on the wording of the prompt, moderation tasks interact with safety tuning, and running an LLM costs more than running a small encoder, through per-token API charges and rate limits or through hardware. Hasan et al. \cite{hasan2025banglamultihate} compared classical baselines, monolingual pretrained models and LLMs (zero-shot and LoRA fine-tuned) on Bangla hate speech and report that LoRA-tuned LLMs are competitive with BanglaBERT. It is the closest study to this one, but it covers hate type, severity and target rather than a binary label.
 
-There are drawbacks. Most LLMs are trained mainly on English text, so their Bangla may be weaker, especially for slang and spelling variants. The result depends on the wording of the prompt, and a small change in the instruction can change the labels. Content-moderation tasks also interact with the safety tuning of the model. Running an LLM costs more than running a small encoder, whether through an API with per-token charges and rate limits or on one's own hardware.
-
-Hasan et al. \cite{hasan2025banglamultihate} compared classical baselines, monolingual pretrained models and LLMs, both zero-shot and LoRA fine-tuned, on a Bangla hate speech dataset. They report that LoRA-tuned LLMs are competitive with BanglaBERT, and that pretraining grounded in the language remains important. This is the study closest to the present one. It covers hate speech type, severity and target rather than a binary toxicity label.
-
-This thesis uses Qwen (\texttt{qwen/qwen3.8-27b}), an open-weight model that is multilingual and available through the Groq inference service \cite{groqmodels}. The choice was practical: the model was available on the free tier of the service, and its weights are open, so the experiment can be repeated. It is not claimed to be the best LLM for Bangla, and the earlier Qwen3 report \cite{yang2025qwen3} describes the model family rather than this exact release.
+This thesis uses Qwen (\texttt{qwen/qwen3.8-27b}), an open-weight multilingual model on the Groq inference service \cite{groqmodels}. It was chosen because it was available on the free tier and its weights are open, so the experiment can be repeated, not because it is the best LLM for Bangla. The Qwen3 report \cite{yang2025qwen3} describes the model family and not this exact release.
 
 \section{Research Gap}
 
-Earlier Bangla studies are valuable, but the literature reviewed above leaves the following gaps open.
+The literature reviewed here leaves five gaps, which this thesis addresses.
 
 \begin{enumerate}
-  \item \textbf{Bangla-specific against multilingual transformers.} On the dataset of Belal et al. \cite{belal2023toxic}, only a fine-tuned Bangla BERT was reported. The thesis fine-tunes a Bangla-specific and a multilingual model under identical conditions and compares them, for one checkpoint of each kind.
-  \item \textbf{Controlled comparison with zero-shot LLMs.} Hasan et al. \cite{hasan2025banglamultihate} include LLMs, but for hate speech type, severity and target. On the binary toxicity dataset of Belal et al. \cite{belal2023toxic}, no comparison between fine-tuned transformers and a zero-shot LLM on the same test comments is known to the author. The thesis supplies one.
-  \item \textbf{Effect of training-set size.} Earlier work reports results at one training size. The thesis measures how performance changes with 25\%, 50\% and 100\% of the training data.
-  \item \textbf{Speed next to accuracy.} Earlier work rarely reports inference speed. The thesis reports comments classified per second for every approach, with the caveats that apply to each setup.
-  \item \textbf{A consistent evaluation protocol.} Splits, preprocessing and metrics differ between papers. The thesis uses one stratified test set, a separate validation set, repeated runs and the same metrics for all methods.
+  \item \textbf{Bangla-specific against multilingual transformers.} On the dataset of Belal et al., only a fine-tuned Bangla BERT was reported. Here a Bangla-specific and a multilingual model are fine-tuned under identical conditions.
+  \item \textbf{Controlled comparison with zero-shot LLMs.} Hasan et al. include LLMs for hate speech, but no comparison of fine-tuned transformers and a zero-shot LLM on the binary dataset of Belal et al. is known to the author. This thesis supplies one.
+  \item \textbf{Effect of training-set size.} Earlier work reports one training size. Here 25\%, 50\% and 100\% are compared.
+  \item \textbf{Speed next to accuracy.} Earlier work rarely reports inference speed. Here every approach is timed, with the caveats of each setup.
+  \item \textbf{A consistent protocol.} Splits, preprocessing and metrics differ between papers. Here one test set, a validation set, repeated runs and the same metrics are used for all methods.
 \end{enumerate}
 
-The gaps are claims about the literature reviewed in this chapter, which is not exhaustive. They describe what this thesis adds, and they are not a claim that no other work exists.
+These are claims about the literature reviewed in this chapter, which is not exhaustive, and not a claim that no other work exists.

@@ -3,37 +3,23 @@
 
 \section{Background}
 
-Bangla (Bengali) is the national language of Bangladesh and is spoken natively by more than 200 million people \cite{belal2023toxic}. Social media use has grown quickly alongside it. At the start of 2024 Bangladesh had about 77 million internet users and about 53 million social media user identities, and YouTube reached roughly 34 million people \cite{datareportal2024}. Much of this activity happens in Bangla, in comment sections on Facebook and YouTube. Alongside ordinary discussion, these comments contain insults, vulgar language, threats, trolling, and hate directed at people because of their religion or identity.
+Bangla (Bengali) is the national language of Bangladesh and is spoken natively by more than 200 million people \cite{belal2023toxic}. At the start of 2024 Bangladesh had about 77 million internet users and about 53 million social media user identities, and YouTube reached roughly 34 million people \cite{datareportal2024}. Much of this activity happens in Bangla, in comment sections on Facebook and YouTube, and alongside ordinary discussion it contains insults, vulgar language, threats, trolling and hate directed at people because of their religion or identity. The volume is far too large for human moderators alone, so platforms rely on automatic filtering. Such systems have been built mainly for English \cite{schmidt2017survey,fortuna2018survey}, and for Bangla, labelled datasets and well-tested tools are much scarcer, which makes it a \emph{low-resource} language for this task.
 
-Toxic comments harm the people they target, discourage others from taking part and can contribute to offline conflict. The volume of comments is far too large for human moderators alone, so platforms rely on automatic filtering. Such systems have been built mainly for English and a few other high-resource languages \cite{schmidt2017survey,fortuna2018survey}. For Bangla, labelled datasets and well-tested tools are much scarcer, which makes it a \emph{low-resource} language for this task.
+The terms in this area overlap. \emph{Hate speech} usually means attacks on a person or group because of a protected characteristic such as religion or ethnicity. \emph{Offensive} or \emph{abusive} language is broader and covers insults and obscenity whether or not a group is targeted \cite{davidson2017automated}. \emph{Toxic} is the broadest term, covers any comment likely to hurt, offend or drive away the reader, and is partly subjective \cite{belal2023toxic}. This thesis follows the dataset and calls a comment toxic if it falls into any of six categories: vulgar, hate, religious, threat, troll or insult.
 
-The terms used in this area overlap, and studies do not always use them in the same way. \emph{Hate speech} usually means attacks on a person or group because of a protected characteristic such as religion, ethnicity or gender. \emph{Offensive} or \emph{abusive} language is broader: it covers insults and obscenity whether or not a group is targeted \cite{davidson2017automated}. \emph{Toxic} is the broadest of the three and is the term used for the dataset in this thesis. It covers any comment likely to hurt, offend or drive away the reader, and the boundary is partly subjective \cite{belal2023toxic}. This thesis follows the dataset and treats a comment as toxic if it falls into any of six categories: vulgar, hate, religious, threat, troll or insult.
+Bangla is hard for automatic detection. Spelling is not standardised on social media, informal and regional expressions are common, and meaning often depends on context. Sarcasm and indirect insults contain no explicit offensive word, and many users write Romanised Bangla (``Banglish'') or mix Bangla and English. A method that works on standard English text cannot be assumed to work on such material.
 
-Bangla is hard for automatic detection for several reasons. Spelling is not standardised on social media, so one word can appear in many written forms. Informal and regional expressions are common, and the meaning of a comment often depends on context. Sarcasm and indirect insults contain no explicit offensive word. Many users also write Bangla in Latin letters (Romanised Bangla, sometimes called ``Banglish'') or mix Bangla and English in one sentence. A method that works well on standard English text cannot be assumed to work on this kind of material.
-
-Recent progress in natural language processing (NLP) offers two broad routes. The first is \emph{fine-tuning} a pretrained transformer \cite{vaswani2017attention,devlin2019bert} on a labelled dataset, either a Bangla-specific model such as BanglaBERT \cite{sarker2020banglabert} or a multilingual model such as XLM-RoBERTa \cite{conneau2020xlmr}. The second is to use a \emph{large language model} (LLM) through prompting alone, without task-specific training \cite{brown2020gpt3}. Simpler approaches, such as checking comments against a list of offensive words, are still widely used in practice because they are easy to deploy.
+Natural language processing offers two broad routes. One is \emph{fine-tuning} a pretrained transformer \cite{vaswani2017attention,devlin2019bert}, either a Bangla-specific model such as BanglaBERT \cite{sarker2020banglabert} or a multilingual one such as XLM-RoBERTa \cite{conneau2020xlmr}. The other is to use a \emph{large language model} (LLM) through prompting alone \cite{brown2020gpt3}. Simple word lists are still widely used because they are easy to deploy.
 
 \section{Problem Statement}
 
-Three problems motivate this work.
-
-\begin{enumerate}
-  \item \textbf{Few effective detection systems for Bangla.} Most moderation tools target English. Published Bangla work is growing, but many studies use small or unbalanced datasets and report results from a single run.
-  \item \textbf{No clear answer on model choice.} It is not known whether a transformer pretrained only on Bangla text does better than a multilingual one on Bangla toxicity, or whether the answer depends on how much labelled data is available.
-  \item \textbf{No controlled comparison with LLMs.} Zero-shot LLMs need no training data, but they are slower and depend on an external service. Their accuracy has rarely been measured against fine-tuned models on the same Bangla test comments.
-\end{enumerate}
-
-A fourth, practical question concerns word lists. English profanity filters are cheap and widely available, but their vocabulary is English. They cannot match Bangla script at all, and even a Bangla word list has to cope with spelling variation and with offensive meaning that does not depend on a single word. How well a word list does on Bangla, once it is built from Bangla data, is also worth measuring.
+Three problems motivate this work. First, effective detection systems for Bangla are few, and many published studies use small or unbalanced datasets and report a single run. Second, it is not known whether a transformer pretrained only on Bangla does better than a multilingual one on Bangla toxicity. Third, zero-shot LLMs need no training data but are slower and depend on an external service, and their accuracy has rarely been measured against fine-tuned models on the same Bangla test comments. In addition, English profanity filters cannot match Bangla script at all, so it is also worth measuring how a word list does once it is built from Bangla data.
 
 \section{Motivation}
 
-The first motivation is practical. A moderation team choosing a method has to weigh accuracy against cost: fine-tuning needs labelled data and a GPU, while a prompted LLM needs an API account, pays per request and is slower. This thesis therefore reports inference speed and error types next to accuracy, so that the trade-off can be seen directly.
-
-The second is the question of whether labelled data and fine-tuning are still worth the effort now that general-purpose LLMs are available. The third concerns evidence. Many studies report one training run, which makes it hard to tell a real difference between two models from random variation. Repeating the training with different seeds, and keeping validation and test data strictly apart, gives results that are easier to trust.
+A moderation team choosing a method has to weigh accuracy against cost: fine-tuning needs labelled data and a GPU, while a prompted LLM needs an API account, charges per request and is slower. The thesis therefore reports inference speed and error types next to accuracy. It also asks whether labelled data and fine-tuning are still worth the effort now that general-purpose LLMs exist, and it repeats training with different seeds and keeps validation and test data apart, so that differences between models are easier to trust.
 
 \section{Research Questions}
-
-This thesis addresses the following research questions:
 
 \begin{enumerate}[label=\textbf{RQ\arabic*.}, leftmargin=*]
   \item How effectively can fine-tuned transformer models detect toxic Bangla comments?
@@ -43,37 +29,19 @@ This thesis addresses the following research questions:
   \item How does the amount of training data affect the performance of the fine-tuned models?
 \end{enumerate}
 
-Each question has a matching expectation, formed from earlier work and checked against the results in Chapter~4:
-
-\begin{itemize}
-  \item \textbf{H1.} Fine-tuned transformers perform clearly better than the zero-shot LLM and the word-list filters.
-  \item \textbf{H2.} The Bangla-specific model does not necessarily beat the multilingual model, because the multilingual model has seen far more text.
-  \item \textbf{H3.} The zero-shot LLM scores lower than the fine-tuned models and classifies fewer comments per second.
-  \item \textbf{H4.} An English word list detects almost no toxic Bangla comments. A word list built from Bangla data does better but remains below the fine-tuned models.
-  \item \textbf{H5.} Performance rises with more training data, with diminishing returns.
-\end{itemize}
+Each question has an expectation, formed from earlier work and checked in Chapter~4. \textbf{H1:} fine-tuned transformers perform clearly better than the LLM and the word lists. \textbf{H2:} the Bangla-specific model does not necessarily beat the multilingual one. \textbf{H3:} the LLM scores lower and classifies fewer comments per second. \textbf{H4:} an English word list detects almost nothing, and a Bangla word list does better but stays below the fine-tuned models. \textbf{H5:} performance rises with more data, with diminishing returns.
 
 \section{Contributions}
 
-The contributions of this thesis are:
-
 \begin{itemize}
-  \item \textbf{Comparative evaluation.} Four types of method are scored on one stratified test set from the same dataset: word-list filters, a Bangla-specific transformer, a multilingual transformer and a zero-shot LLM. The comparison is also made on exactly the comments that all methods classified.
-  \item \textbf{Experimental reliability.} Model selection uses a separate validation split, so the test set is used only for final scores. Each fine-tuned model is trained with three random seeds, and results are reported with spread and confidence intervals.
-  \item \textbf{Data efficiency.} A learning-curve experiment shows how much labelled data each fine-tuned model needs.
-  \item \textbf{Practical trade-offs.} Error types and inference speed are analysed next to accuracy, with real examples of misclassified comments, to show what each approach costs in a moderation setting.
+  \item \textbf{Comparative evaluation.} Word lists, a Bangla-specific transformer, a multilingual transformer and a zero-shot LLM are scored on the same 3,183 test comments of one dataset.
+  \item \textbf{Experimental reliability.} A separate validation split is used for model selection, each fine-tuned model is trained with three seeds, and results come with confidence intervals and a paired test.
+  \item \textbf{Data efficiency.} A learning curve shows how much labelled data each model needs.
+  \item \textbf{Practical trade-offs.} Error types, real examples of misclassified comments and inference speed are analysed next to accuracy.
 \end{itemize}
 
-The code, notebooks and trained model link are available at \url{https://github.com/mehediparvez/bangla_profanity_word_detection}.
+The code, notebooks and a link to the trained models are public at \url{https://github.com/mehediparvez/bangla_profanity_word_detection}.
 
 \section{Thesis Organization}
 
-The rest of this thesis is organised as follows.
-
-\textbf{Chapter 2: Literature Review} surveys work on toxic and hate speech detection, Bangla datasets and models, pretrained transformers, and LLM-based classification, and states the research gap.
-
-\textbf{Chapter 3: Methodology} describes the dataset, preprocessing, the four approaches, the training setup and the evaluation protocol.
-
-\textbf{Chapter 4: Results and Discussion} presents and analyses the experimental results and answers the research questions.
-
-\textbf{Chapter 5: Conclusion and Future Work} summarises the findings, limitations and directions for future research.
+Chapter~2 reviews related work and states the research gap. Chapter~3 describes the dataset, the approaches, the training setup and the evaluation protocol. Chapter~4 presents and analyses the results and answers the research questions. Chapter~5 gives the conclusion, limitations and future work.

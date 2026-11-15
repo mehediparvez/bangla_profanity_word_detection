@@ -19,16 +19,18 @@ plt.rcParams.update({"font.family": "serif", "font.size": 11, "axes.grid": True,
 # name: (F1 mean, F1 std, accuracy of the evaluated model, comments per second)
 RESULTS = {
     "better_profanity": (0.2989, 0.0, 0.4684, 21.4),
-    "LLM zero-shot": (0.7681, 0.0, 0.7748, 2.6),
+    "Bangla word list": (0.8596, 0.0, 0.8596, 115146.0),
+    "LLM zero-shot": (0.7714, 0.0, 0.7779, 2.8),  # complete run of 15 Nov 2026, all 3,183 comments
     "BanglaBERT": (0.9276, 0.0035, 0.9271, 183.3),  # accuracy and speed: run 1 model
     "XLM-RoBERTa": (0.9430, 0.0013, 0.9413, 177.2),
 }
-COLORS = ["#9e9e9e", "#e69f00", "#56b4e9", "#0072b2"]
+COLORS = ["#9e9e9e", "#cc79a7", "#e69f00", "#56b4e9", "#0072b2"]
 
-# Confusion matrices [[TN, FP], [FN, TP]] on the test set
+# Confusion matrices [[TN, FP], [FN, TP]] on the test set (3,183 comments)
 CONFUSION = {
     "better_profanity": [[1491, 0], [1692, 0]],
-    "LLM zero-shot": [[1391, 29], [654, 959]],
+    "Bangla word list": [[1274, 217], [230, 1462]],
+    "LLM zero-shot": [[1462, 29], [678, 1014]],
     "BanglaBERT": [[1341, 150], [82, 1610]],
     "XLM-RoBERTa": [[1390, 101], [86, 1606]],
 }
@@ -44,7 +46,7 @@ def f1_bar():
     names = list(RESULTS)
     f1 = [RESULTS[n][0] for n in names]
     std = [RESULTS[n][1] for n in names]
-    fig, ax = plt.subplots(figsize=(7, 3.4))
+    fig, ax = plt.subplots(figsize=(7, 3.8))
     bars = ax.barh(names, f1, xerr=std, color=COLORS, capsize=4)
     for bar, v in zip(bars, f1):
         ax.text(v + 0.01, bar.get_y() + bar.get_height() / 2, f"{v:.3f}", va="center")
@@ -79,10 +81,10 @@ def accuracy_vs_speed():
     for (name, (_, _, acc, speed)), color in zip(RESULTS.items(), COLORS):
         ax.scatter(speed, acc, s=110, color=color, edgecolor="black", zorder=3)
         # The two transformers sit close together, so put one label above and one below
-        offset = {"XLM-RoBERTa": (8, 6), "BanglaBERT": (8, -14)}.get(name, (8, -4))
+        offset = {"XLM-RoBERTa": (8, 6), "BanglaBERT": (8, -14), "Bangla word list": (-95, -16)}.get(name, (8, -4))
         ax.annotate(name, (speed, acc), xytext=offset, textcoords="offset points")
     ax.set_xscale("log")
-    ax.set(xlim=(1, 800), ylim=(0.4, 1.0), xlabel="Inference speed (comments per second, log scale)", ylabel="Accuracy")
+    ax.set(xlim=(1, 6e5), ylim=(0.4, 1.0), xlabel="Inference speed (comments per second, log scale)", ylabel="Accuracy")
     fig.tight_layout()
     fig.savefig(os.path.join(OUT, "accuracy_vs_speed.png"), dpi=200)
     plt.close(fig)
@@ -103,7 +105,9 @@ def learning_curves():
 
 
 def confusion_matrices():
-    fig, axes = plt.subplots(1, 4, figsize=(12, 3.3))
+    # Two rows of larger panels so the numbers stay readable when printed
+    fig, axes = plt.subplots(2, 3, figsize=(10, 5.4))
+    axes = axes.ravel()
     labels = ["Non-toxic", "Toxic"]
     for ax, (name, cm) in zip(axes, CONFUSION.items()):
         ax.imshow(cm, cmap="Blues")
@@ -112,12 +116,14 @@ def confusion_matrices():
         for i in range(2):
             for j in range(2):
                 ax.text(j, i, f"{cm[i][j]:,}", ha="center", va="center",
-                        color="white" if cm[i][j] > top / 2 else "black", fontsize=11)
-        ax.set_title(name, fontsize=11)
-        ax.set_xticks([0, 1], labels)
-        ax.set_yticks([0, 1], labels if ax is axes[0] else ["", ""])
-        ax.set_xlabel("Predicted")
-    axes[0].set_ylabel("True label")
+                        color="white" if cm[i][j] > top / 2 else "black", fontsize=16, fontweight="bold")
+        ax.set_title(name, fontsize=14)
+        ax.set_xticks([0, 1], labels, fontsize=12)
+        ax.set_yticks([0, 1], labels, fontsize=12, rotation=90, va="center")
+        ax.set_xlabel("Predicted", fontsize=12)
+        ax.set_ylabel("True label", fontsize=12)
+    for ax in axes[len(CONFUSION):]:
+        ax.axis("off")
     fig.tight_layout()
     fig.savefig(os.path.join(OUT, "confusion_matrices.png"), dpi=200)
     plt.close(fig)
