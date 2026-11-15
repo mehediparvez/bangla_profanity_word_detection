@@ -122,7 +122,7 @@ Table~\ref{tab:prepcounts} shows how many comments each step removed.
 
 In total 160 comments were removed, 29 toxic and 131 non-toxic. The split between empty comments and duplicates comes from the preprocessing script output (\texttt{data/prepare\_data.py}).
 
-No stemming, stop-word removal or other normalisation was applied. The transformer models use their own subword tokenisers, which are trained on raw text, and punctuation, repeated characters or emoji can carry meaning in a toxic comment. This differs from Belal et al., who removed punctuation, emoticons, hyperlinks and stop words. The comments are mostly Bangla script. A count of Latin letters, digits, emoji and URLs in the final dataset is given in Table~\ref{tab:scriptcontent}.
+No stemming, stop-word removal or other normalisation was applied. The transformer models use their own subword tokenisers, which are trained on raw text, and punctuation, repeated characters or emoji can carry meaning in a toxic comment. This differs from Belal et al., who removed punctuation, emoticons, hyperlinks and stop words. The comments are mostly Bangla script. A count of Latin letters, digits, emoji and URLs in the final dataset is given in Table~\ref{tab:scriptcontent}. Almost every comment (15,908 of 15,913) contains Bangla script, and only 83 contain Latin letters, so Romanised or code-mixed text is very rare in this dataset and is not tested by it.
 
 \begin{table}[H]
   \centering
@@ -132,11 +132,11 @@ No stemming, stop-word removal or other normalisation was applied. The transform
     \toprule
     \textbf{Content} & \textbf{Comments} \\
     \midrule
-    Bangla script (at least one Bangla letter) & \todo{count} \\
-    Latin letters (English words or Romanised Bangla) & \todo{count} \\
-    Digits & \todo{count} \\
-    Emoji & \todo{count} \\
-    URLs & \todo{count} \\
+    Bangla script (at least one Bangla letter) & 15,908 \\
+    Latin letters (English words or Romanised Bangla) & 83 \\
+    Digits (Bangla or Latin) & 852 \\
+    Emoji & 97 \\
+    URLs & 2 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -176,8 +176,8 @@ For the fine-tuned models, 10\% of the training set (1,273 comments) was further
     \toprule
     \textbf{Subset} & \textbf{Comments} & \textbf{Toxic} & \textbf{Non-toxic} \\
     \midrule
-    Fit (gradient updates) & 11,457 & \todo{count} & \todo{count} \\
-    Validation             & 1,273  & \todo{count} & \todo{count} \\
+    Fit (gradient updates) & 11,457 & 6,090 & 5,367 \\
+    Validation             & 1,273  & 677 & 596 \\
     Training total         & 12,730 & 6,767 & 5,963 \\
     Test                   & 3,183  & 1,692 & 1,491 \\
     \bottomrule
@@ -192,7 +192,7 @@ Removing exact duplicates does not remove \emph{near}-duplicates, that is, comme
 
 The first baseline is \texttt{better\_profanity} \cite{betterprofanity}, a Python library that flags text containing any word from its built-in profanity list, including common obfuscated spellings. It needs no training. Its list is in English, so this baseline represents the practice of applying an off-the-shelf filter to a new language without adapting it. It is a language-mismatched baseline. Its result says how an English filter behaves on Bangla, not how word lists behave in general.
 
-A fairer word-list baseline was therefore added. The Bangla word list is built from the fit split only. Each comment is split into words, and a word enters the list if it appears in at least $m$ comments and at least a share $r$ of those comments are toxic. A test comment is flagged if it contains any listed word. The two cut-offs, $m$ and $r$, are chosen by a small grid search on the validation split, so the test set plays no part in building the list. This is a simple data-driven list, not a hand-curated Bangla lexicon.
+A fairer word-list baseline was therefore added. The Bangla word list is built from the fit split only. Each comment is split into words, and a word enters the list if it appears in at least $m$ comments and at least a share $r$ of those comments are toxic. A test comment is flagged if it contains any listed word. The two cut-offs, $m$ and $r$, are chosen by a small grid search on the validation split, so the test set plays no part in building the list. The grid searched $m\in\{3,5,10\}$ and $r\in\{0.7,0.8,0.9,0.95\}$, and the best validation F1 (0.859) was reached with $m=3$ and $r=0.9$, which gives a list of 1,749 words. This is a simple data-driven list, not a hand-curated Bangla lexicon.
 
 \subsection{BanglaBERT}
 

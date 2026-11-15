@@ -15,16 +15,25 @@ Deep learning replaced hand-made features with learned ones. Convolutional netwo
 
 Bangla has received growing attention in recent years. Table~\ref{tab:litreview} lists the studies most relevant to this thesis. The figures in the table are taken from the original papers.
 
-\begin{table}[H]
-  \centering
-  \caption{Studies related to Bangla toxic and hate speech detection.}
-  \label{tab:litreview}
-  \footnotesize
-  \renewcommand{\arraystretch}{1.25}
-  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
-    \toprule
-    \textbf{Author \& Year} & \textbf{Method} & \textbf{Dataset} & \textbf{Reported Performance} & \textbf{Limitation / Research Gap} \\
-    \midrule
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.25}
+\begin{longtable}{>{\raggedright\arraybackslash}p{2.1cm} >{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}p{2.9cm} >{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}p{3.0cm}}
+  \caption{Studies related to Bangla toxic and hate speech detection.}\label{tab:litreview}\\
+  \toprule
+      \textbf{Author \& Year} & \textbf{Method} & \textbf{Dataset} & \textbf{Reported Performance} & \textbf{Limitation / Research Gap} \\
+  \midrule
+  \endfirsthead
+  \caption[]{Studies related to Bangla toxic and hate speech detection (continued).}\\
+  \toprule
+      \textbf{Author \& Year} & \textbf{Method} & \textbf{Dataset} & \textbf{Reported Performance} & \textbf{Limitation / Research Gap} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \bottomrule
+  \endlastfoot
     Ishmam and Sharmin (2019) \cite{ishmam2019hateful}
       & Classical machine learning and recurrent neural networks
       & Comments from public Facebook pages
@@ -78,9 +87,8 @@ Bangla has received growing attention in recent years. Table~\ref{tab:litreview}
       & Belal et al. dataset, binary labels
       & XLM-RoBERTa best, weighted F1 0.943
       & One dataset; binary labels; one LLM and one prompt. \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
+\end{longtable}
+\endgroup
 
 Ishmam and Sharmin \cite{ishmam2019hateful} collected comments from public Facebook pages and classified hateful speech using machine learning and recurrent neural networks. Romim et al. \cite{romim2021hate} released a dataset of 30,000 comments from YouTube and Facebook, annotated by crowd workers and checked by experts. Their baselines used word embeddings with deep learning models, and an SVM gave the best accuracy. The same group later published BD-SHS \cite{romim2022bdshs}, a larger set of more than 50,000 comments with hierarchical labels that record the social context of the hate. Das et al. \cite{das2021bangla} used attention-based recurrent models on a smaller set of 7,425 comments. Karim et al. \cite{karim2021deephateexplainer} applied transformers to Bangla hate speech, combining BanglaBERT-base, multilingual BERT and XLM-RoBERTa in an ensemble and adding explanations of the model decisions.
 
