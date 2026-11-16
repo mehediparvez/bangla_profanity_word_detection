@@ -11,7 +11,7 @@ Deep learning replaced hand-made features with learned ones. Convolutional netwo
 
 \section{Toxic and Hate Speech Detection in Bangla}
 
-Table~\ref{tab:litreview} lists the studies most relevant to this thesis. The figures are taken from the original papers.
+Table~\ref{tab:litreview} lists the studies most relevant to this project. The figures are taken from the original papers.
 
 \begingroup
 \footnotesize
@@ -63,7 +63,7 @@ Table~\ref{tab:litreview} lists the studies most relevant to this thesis. The fi
       & LoRA-tuned LLMs competitive with BanglaBERT
       & Hate type, severity and target, not binary toxicity. \\
     \midrule
-    This thesis
+    This project
       & Word lists, BanglaBERT, XLM-RoBERTa, zero-shot Qwen
       & Belal et al. dataset, binary labels
       & XLM-RoBERTa best, weighted F1 0.943
@@ -83,10 +83,10 @@ Two different Bangla models share the name BanglaBERT. Sarker \cite{sarker2020ba
 
 In \emph{zero-shot} classification the prompt holds only the instruction and the text to classify, and in \emph{few-shot} classification it also holds a few labelled examples \cite{brown2020gpt3}. This needs no labelled data and no training, which suits low-resource languages. The drawbacks are that most LLMs are trained mainly on English, results depend on the wording of the prompt, and running an LLM takes more resources than running a small encoder, whether through API charges and rate limits or through hardware. Hasan et al. \cite{hasan2025banglamultihate} compared classical baselines, monolingual pretrained models and LLMs (zero-shot and LoRA fine-tuned) on Bangla hate speech and report that LoRA-tuned LLMs are competitive with BanglaBERT. It is the closest study to this one, but it covers hate type, severity and target rather than a binary label.
 
-This thesis uses Qwen (\texttt{qwen/qwen3.8-27b}), an open-weight multilingual model on the Groq inference service \cite{groqmodels}. It was chosen because it was available on the free tier and its weights are open, so the experiment can be repeated, not because it is the best LLM for Bangla. The Qwen3 report \cite{yang2025qwen3} describes the model family and not this exact release.
+This project uses Qwen (\texttt{qwen/qwen3.8-27b}), an open-weight multilingual model on the Groq inference service \cite{groqmodels}. It was chosen because it was available on the free tier and its weights are open, so the experiment can be repeated, not because it is the best LLM for Bangla. The Qwen3 report \cite{yang2025qwen3} describes the model family and not this exact release.
 
 \section{Research Gap}
 
 Earlier Bangla work leaves several questions open. On the dataset of Belal et al., only a fine-tuned Bangla BERT was reported, so a Bangla-specific and a multilingual transformer have not been compared there. Hasan et al. \cite{hasan2025banglamultihate} include LLMs, but for hate speech type, severity and target. A comparison of fine-tuned transformers with a zero-shot LLM on the binary dataset of Belal et al., on the same test comments, is not known to the author. The abstracts of the studies in Table~\ref{tab:litreview} do not mention the effect of training-set size or inference speed, and their splits, preprocessing and metrics differ, which makes their numbers hard to compare.
 
-This thesis addresses these points. It fine-tunes a Bangla-specific and a multilingual model under identical conditions, adds a zero-shot LLM and two word lists, scores everything on one test set with one set of metrics, and reports the effect of training-set size and the speed of each approach. The review is not exhaustive, so these statements describe the sources read here and do not exclude other work.
+This project addresses these points. It fine-tunes a Bangla-specific and a multilingual model under identical conditions, adds a zero-shot LLM and two word lists, scores everything on one test set with one set of metrics, and reports the effect of training-set size and the speed of each approach. The review is not exhaustive, so these statements describe the sources read here and do not exclude other work.

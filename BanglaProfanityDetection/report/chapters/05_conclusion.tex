@@ -3,7 +3,7 @@
 
 \section{Conclusion}
 
-Moderation tools are built mainly for English, and it was unclear which approach works best for toxic Bangla comments. This thesis compared word lists, two fine-tuned transformers (the Bangla-specific BanglaBERT and the multilingual XLM-RoBERTa) and a zero-shot LLM on the Multi-labeled Bengali Toxic Comments dataset. The six toxicity labels were merged into one binary label, and every approach was scored on the same stratified test set of 3,183 comments. Model selection used a separate validation split, and each fine-tuned model was trained three times.
+Moderation tools are built mainly for English, and it was unclear which approach works best for toxic Bangla comments. This project compared word lists, two fine-tuned transformers (the Bangla-specific BanglaBERT and the multilingual XLM-RoBERTa) and a zero-shot LLM on the Multi-labeled Bengali Toxic Comments dataset. The six toxicity labels were merged into one binary label, and every approach was scored on the same stratified test set of 3,183 comments. Model selection used a separate validation split, and each fine-tuned model was trained three times.
 
 XLM-RoBERTa gave the best weighted F1, 0.943, and BanglaBERT reached 0.928. Both miss about 5\% of toxic comments, XLM-RoBERTa raises a third fewer false alarms, and both classify around 180 comments per second on a free GPU. With a quarter of the training data both still exceed an F1 of 0.90. The zero-shot LLM reached 0.771. It rarely raised false alarms, but it missed about 40\% of toxic comments and was far slower in the tested setup. The English word list failed completely because its vocabulary does not match Bangla script. A Bangla word list learned from the training data reached 0.860, so word lists can work once they use Bangla words, although many of its false alarms come from single words that are not abusive.
 
@@ -13,7 +13,7 @@ For this dataset and setup, fine-tuning a pretrained transformer on a moderate a
 
 \begin{itemize}
   \item All experiments use one dataset assembled from three earlier collections, so generalisation to other platforms, topics or periods was not tested.
-  \item The six toxicity types were merged, so the thesis cannot say how well each type, such as threats or religious hate, is detected.
+  \item The six toxicity types were merged, so the project cannot say how well each type, such as threats or religious hate, is detected.
   \item Romanised Bangla and code-mixed text were not studied, and the dataset contains almost none.
   \item Only one LLM and one prompt were tested, and the LLM was run once for the reported scores. Zero-shot results can depend strongly on prompt wording. The speed comparison reflects a free API tier and a local GPU, not the models themselves.
   \item The English word list is not representative of Bangla filtering, and the Bangla list is learned automatically and not curated by hand.
