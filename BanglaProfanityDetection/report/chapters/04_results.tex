@@ -9,7 +9,7 @@ Table~\ref{tab:main} gives the results. Every approach classified all 3,183 test
 
 \begin{table}[H]
   \centering
-  \caption{Results on the test set (3,183 comments). Fine-tuned models: mean $\pm$ standard deviation over three runs. Precision and F1 are weighted averages, and weighted recall equals accuracy. Toxic F1 and the 95\% bootstrap interval of the weighted F1 (2,000 resamples) use the first run for fine-tuned models. Speed is comments per second (Section~\ref{sec:speed}).}
+  \caption[Results on the test set]{Results on the test set (3,183 comments).}
   \label{tab:main}
   \footnotesize
   \resizebox{\textwidth}{!}{%
@@ -25,6 +25,8 @@ Table~\ref{tab:main} gives the results. Every approach classified all 3,183 test
     \bottomrule
   \end{tabular}}
 \end{table}
+
+For the fine-tuned models the table gives the mean $\pm$ standard deviation over three runs. Precision and F1 are weighted averages, and weighted recall equals accuracy. Toxic F1 and the 95\% bootstrap interval of the weighted F1 (2,000 resamples) use the first run, and speed is in comments per second (Section~\ref{sec:speed}).
 
 The fine-tuned transformers come out well ahead. XLM-RoBERTa is best (F1 0.943), followed by BanglaBERT (0.928). The Bangla word list reaches 0.860 and the zero-shot LLM 0.771, which is 16 to 17 points below the fine-tuned models and also below the word list. The English word list barely works. The fine-tuned precision values are means over three runs, with standard deviations of 0.0036 for BanglaBERT and 0.0015 for XLM-RoBERTa. All fine-tuned values match the saved \texttt{summary.json} files of the experiments. The word lists and the LLM were run once.
 
@@ -44,18 +46,18 @@ Three runs cannot support a formal significance test, so the uncertainty was des
 
 \subsection{Error Analysis}
 
-Figure~\ref{fig:cm} shows the confusion matrices and Table~\ref{tab:perclass} the per-class scores.
+Figure~\ref{fig:cm} shows the confusion matrices (first run for the fine-tuned models, true labels in rows and predictions in columns) and Table~\ref{tab:perclass} the per-class scores.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.5\textwidth]{confusion_matrices.png}
-  \caption{Confusion matrices on the test set (first run for the fine-tuned models). Rows are true labels, columns are predictions.}
+  \caption{Confusion matrices on the test set.}
   \label{fig:cm}
 \end{figure}
 
 \begin{table}[H]
   \centering
-  \caption{Per-class precision, recall and F1 on the test set, computed from the confusion matrices in Figure~\ref{fig:cm}.}
+  \caption{Per-class precision, recall and F1.}
   \label{tab:perclass}
   \small
   \begin{tabular}{llccc}
@@ -80,7 +82,7 @@ Table~\ref{tab:errors} gives examples from random samples of ten false positives
 
 \begin{table}[H]
   \centering
-  \caption{Examples of misclassified and correctly classified test comments (approximate English glosses). ``True'' is the dataset label.}
+  \caption[Examples of classified comments]{Examples of classified test comments, with approximate English glosses.}
   \label{tab:errors}
   \scriptsize
   \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{1.7cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{1.2cm} >{\raggedright\arraybackslash}p{1.2cm} >{\raggedright\arraybackslash}X}
@@ -115,17 +117,17 @@ Figure~\ref{fig:dynamics} shows a BanglaBERT run over five epochs. The training 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.55\textwidth]{training_dynamics.png}
-  \caption{Training behaviour of BanglaBERT over five epochs (seed 43). The validation loss rises after the first epoch while the validation F1-score still improves slightly.}
+  \caption[BanglaBERT training behaviour]{Training behaviour of BanglaBERT over five epochs.}
   \label{fig:dynamics}
 \end{figure}
 
 \subsection{Effect of Training Data Size}
 
-Table~\ref{tab:lc} gives the test F1 when the models are trained on 25\%, 50\% and 100\% of the training data. The subsets are the first 25\% and 50\% of the shuffled training set, one run each with seed 42. They were not stratified separately, but they keep almost the class ratio of the full set: 1,742 toxic comments in the 3,182 (54.7\%), 3,407 in the 6,365 (53.5\%) and 6,767 in the 12,730 (53.2\%). The 100\% point is a single run and differs slightly from the three-run means in Table~\ref{tab:main}.
+Table~\ref{tab:lc} gives the test F1 (one run per size, seed 42) when the models are trained on 25\%, 50\% and 100\% of the training data. The subsets are the first 25\% and 50\% of the shuffled training set, one run each with seed 42. They were not stratified separately, but they keep almost the class ratio of the full set: 1,742 toxic comments in the 3,182 (54.7\%), 3,407 in the 6,365 (53.5\%) and 6,767 in the 12,730 (53.2\%). The 100\% point is a single run and differs slightly from the three-run means in Table~\ref{tab:main}.
 
 \begin{table}[H]
   \centering
-  \caption{Learning curve: test weighted F1 against the number of training comments (one run per size, seed 42).}
+  \caption[Learning curve]{Test weighted F1 against training-set size.}
   \label{tab:lc}
   \small
   \begin{tabular}{rrcc}
@@ -151,12 +153,12 @@ The experiment was run twice. The first run, on 31 October 2026, hit the free ti
 \section{Inference Efficiency}
 \label{sec:speed}
 
-Figure~\ref{fig:speed} plots accuracy against speed. The fine-tuned models classified about 180 comments per second on one free T4 GPU. The LLM classified 2.8 per second, so the whole test set took 1,129 seconds, about 19 minutes. That is roughly 65 times slower. The Bangla word list is by far the fastest, since it only looks words up in a set. The fine-tuned time includes tokenisation and moving each batch to the GPU, and the LLM time includes the network round-trip, the provider's processing and the free-tier rate-limit pauses. The factor of 65 therefore describes this free-tier API setup and not the model itself. The T4 figures come from the original evaluation. With no T4 available for the supplementary analysis, the timing was repeated on an A100 (batch size 32, three timed passes after warm-up). BanglaBERT needed 4.48 s for the test set (standard deviation 0.012 s) and XLM-RoBERTa 4.65 s (0.007 s), about 710 and 684 comments per second.
+Figure~\ref{fig:speed} plots accuracy against speed (first-run accuracy and T4 speed for the fine-tuned models). The fine-tuned models classified about 180 comments per second on one free T4 GPU. The LLM classified 2.8 per second, so the whole test set took 1,129 seconds, about 19 minutes. That is roughly 65 times slower. The Bangla word list is by far the fastest, since it only looks words up in a set. The fine-tuned time includes tokenisation and moving each batch to the GPU, and the LLM time includes the network round-trip, the provider's processing and the free-tier rate-limit pauses. The factor of 65 therefore describes this free-tier API setup and not the model itself. The T4 figures come from the original evaluation. With no T4 available for the supplementary analysis, the timing was repeated on an A100 (batch size 32, three timed passes after warm-up). BanglaBERT needed 4.48 s for the test set (standard deviation 0.012 s) and XLM-RoBERTa 4.65 s (0.007 s), about 710 and 684 comments per second.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\textwidth]{accuracy_vs_speed.png}
-  \caption{Accuracy against inference speed (log scale). Fine-tuned model accuracy is from the first run and their speed from the T4 evaluation.}
+  \caption[Accuracy against inference speed]{Accuracy against inference speed (log scale).}
   \label{fig:speed}
 \end{figure}
 
@@ -166,7 +168,7 @@ Belal et al. \cite{belal2023toxic} reported a binary accuracy of 89.42\% on the 
 
 \begin{table}[H]
   \centering
-  \caption{Setup of Belal et al. \cite{belal2023toxic} compared with this study.}
+  \caption[Setup compared with Belal et al.]{Setup of Belal et al. compared with this study.}
   \label{tab:belal}
   \footnotesize
   \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}

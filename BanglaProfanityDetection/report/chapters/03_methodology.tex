@@ -3,11 +3,11 @@
 
 \section{Research Design}
 
-The study is an empirical, comparative experiment. All approaches classify each comment as \emph{toxic} or \emph{non-toxic} and are scored on the same held-out test set (Figure~\ref{fig:pipeline}). The four kinds of approach are common options for a moderation team: a word list is the cheapest, fine-tuning a pretrained transformer is the standard supervised method (two models test whether language-specific pretraining matters), and a prompted LLM needs no labelled data. Table~\ref{tab:approaches} classifies the approaches by whether they need training and where they run.
+The study is an empirical, comparative experiment. All approaches classify each comment as \emph{toxic} or \emph{non-toxic} and are scored on the same held-out test set (Figure~\ref{fig:pipeline}, dashed arrow). The two fine-tuned models and the Bangla word list use the training set, while the English word list and the LLM need no training. The four kinds of approach are common options for a moderation team: a word list is the cheapest, fine-tuning a pretrained transformer is the standard supervised method (two models test whether language-specific pretraining matters), and a prompted LLM needs no labelled data. Table~\ref{tab:approaches} classifies the approaches by whether they need training and where they run.
 
 \begin{table}[H]
   \centering
-  \caption{The approaches compared in this project.}
+  \caption{Approaches compared.}
   \label{tab:approaches}
   \small
   \begin{tabular}{llll}
@@ -51,17 +51,17 @@ The study is an empirical, comparative experiment. All approaches classify each 
     \draw[arrow, dashed] (split.east) -- ++(1.4,0) |- node[pos=0.25, right, font=\footnotesize] {20\% test} (eval.east);
     \foreach \m in {lex,bb,xr,llm} \draw[arrow] (\m.south) -- (\m.south |- eval.north);
   \end{tikzpicture}}
-  \caption{Experimental pipeline. The two fine-tuned models and the Bangla word list use the training set. The English word list and the LLM need no training. All approaches are scored on the same held-out test set (dashed arrow).}
+  \caption{Experimental pipeline.}
   \label{fig:pipeline}
 \end{figure}
 
 \section{Dataset}
 
-The experiments use the \textbf{Multi-labeled Bengali Toxic Comments} dataset of Belal et al. \cite{belal2023toxic}, public at \url{https://github.com/deepu099cse/Multi-Labeled-Bengali-Toxic-Comments-Classification}. The authors assembled the comments from three earlier datasets and re-annotated them, because the original labels were inconsistent. The paper gives no collection period, and the repository declares no licence, so the data is used for research only. Each comment was labelled by two annotators and a third resolved disagreements. The average Cohen's kappa for toxic against non-toxic was 0.96, and the values for the six types are in Table~\ref{tab:rawlabels}. The dataset has 16,073 comments, 8,488 toxic and 7,585 non-toxic. A comment can carry several of the six labels, and comments with no label are non-toxic.
+The experiments use the \textbf{Multi-labeled Bengali Toxic Comments} dataset of Belal et al. \cite{belal2023toxic}, public at \url{https://github.com/deepu099cse/Multi-Labeled-Bengali-Toxic-Comments-Classification}. The authors assembled the comments from three earlier datasets and re-annotated them, because the original labels were inconsistent. The paper gives no collection period, and the repository declares no licence, so the data is used for research only. Each comment was labelled by two annotators and a third resolved disagreements. The average Cohen's kappa for toxic against non-toxic was 0.96, and the values for the six types (as reported by Belal et al.) are in Table~\ref{tab:rawlabels}. The dataset has 16,073 comments, 8,488 toxic and 7,585 non-toxic. A comment can carry several of the six labels, and comments with no label are non-toxic. The table counts each label over all 16,073 comments.
 
 \begin{table}[H]
   \centering
-  \caption{Occurrences of each toxicity label in the raw dataset (16,073 comments) and the annotator agreement reported by Belal et al. \cite{belal2023toxic}. A comment can carry more than one label.}
+  \caption[Toxicity labels and annotator agreement]{Toxicity labels in the raw dataset.}
   \label{tab:rawlabels}
   \small
   \begin{tabular}{lrcl}
@@ -109,7 +109,7 @@ No stemming, stop-word removal or other normalisation was applied. The transform
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.45\textwidth]{class_distribution.png}
-  \caption{Class distribution after preprocessing (15,913 comments).}
+  \caption{Class distribution after preprocessing.}
   \label{fig:classdist}
 \end{figure}
 
