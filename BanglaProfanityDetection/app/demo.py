@@ -74,9 +74,9 @@ demo = gr.Interface(
         "using a fine-tuned BanglaBERT model."
     ),
     examples=[
-        ["এটি একটি সুন্দর দেশ"],
+        ["সাগর তুমি ভাল ছেলে"],
         ["তুই একটা গাধা"],
-        ["আজকের আবহাওয়া খুব সুন্দর"],
+        ["সিএসই বিভাগ সবথেকে ভালো"],
     ],
     flagging_mode="never",
 )
