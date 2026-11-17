@@ -149,9 +149,9 @@ cd .. && python -m pytest BanglaProfanityDetection/tests/ -v
 Model weights are too large for git (`saved_models/`, `*.pt`, `*.bin` are git-ignored), so they are
 shared on Google Drive:
 
-**https://drive.google.com/drive/folders/1bquDozhluBq29Fot9iQh-n-9ef4brQyd** (`Set_A`, view-only link)
+**https://drive.google.com/drive/folders/1bquDozhluBq29Fot9iQh-n-9ef4brQyd** (`Bangla_Profanity`, view-only link)
 
-Inside `Set_A/BanglaProfanityDetection/results/`:
+Inside `Bangla_Profanity/BanglaProfanityDetection/results/`:
 
 | Folder | Contents |
 |--------|----------|
@@ -168,21 +168,21 @@ To use them:
    ```bash
    MODEL_DIR=/path/to/best_model python main.py --step demo
    ```
-3. Clone the code: `git clone https://github.com/mehediparvez/bangla_profanity_word_detection.git`
+3. Clone the code: `git clone https://github.com/montasirsagor0/bangla_profanity_word_detection.git`
 
 Note: `saved_models/` on Drive is empty. The models live under `results/`.
 
 ## Training on Google Colab
 
 Every notebook starts with a setup cell that only runs on Colab. It mounts Google Drive,
-clones the `main` branch into `MyDrive/Set_A`, `cd`s into `notebooks/` and installs dependencies.
+clones the `main` branch into `MyDrive/Bangla_Profanity`, `cd`s into `notebooks/` and installs dependencies.
 Results and models are written to Drive, so they survive disconnects.
 
-1. Code lives at https://github.com/mehediparvez/bangla_profanity_word_detection (branch `main`).
-2. Open a notebook in Colab: File > Open notebook > GitHub, then search `mehediparvez/bangla_profanity_word_detection` and pick the `main` branch.
+1. Code lives at https://github.com/montasirsagor0/bangla_profanity_word_detection (branch `main`).
+2. Open a notebook in Colab: File > Open notebook > GitHub, then search `montasirsagor0/bangla_profanity_word_detection` and pick the `main` branch.
 3. Runtime > Change runtime type > **T4 GPU**.
 4. Run the setup cell once. Then upload `train.csv` into
-   `MyDrive/Set_A/BanglaProfanityDetection/data/` (Drive web UI or the Colab file browser).
+   `MyDrive/Bangla_Profanity/BanglaProfanityDetection/data/` (Drive web UI or the Colab file browser).
 5. Run the notebooks in order: 01, 02, 03 (BanglaBERT), 04 (XLM-R), 05 (LLM, needs `GROQ_API_KEY`
    set via Colab Secrets or `os.environ`), 06 (plots).
 6. If a session disconnects, re-open the notebook and run it again. Finished runs
