@@ -113,6 +113,8 @@ models that have not been run yet are left out.
 cd app
 python demo.py
 ```
+On Colab, open `notebooks/08_demo.ipynb` instead. It loads the BanglaBERT model from Drive and prints a
+public link to the demo page.
 
 ### Alternative: Run Full Pipeline via CLI
 ```bash
